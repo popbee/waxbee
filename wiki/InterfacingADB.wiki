@@ -1,0 +1,41 @@
+#summary Interfacing ADB Tablets
+
+** this is preliminary information and is subject to change
+
+= What it takes =
+
+  * Teensy 2.0 board (with HalfKay bootloader, the default) - (that's a ATMega32U4 16Mhz board)
+  * USB cable (mini-usb to normal USB)
+  * S-Video cable OR any 4-pin mini-din connector + wires (either female or male connector) OR nothing by directly connecting the wires to the Teensy.
+  * basic soldering equipment. 
+  * The WaxBeeConfig software running 
+  * The appropriate driver for the USB board you are emulating
+
+= What to do =
+
+  * Before soldering anything, check that the Teensy board alone works correctly by plugging it into a USB port. Run the WaxBeeConfig tool. If you have a problem connecting, try running the Teensy loader application and upload something just to check that it works (Blinky).
+
+  * You have to *solder* 3 wires from the mini-din connector. Essentially:
+    * the ADB +5v (red) to any of the "VCC" on the Teensy
+    * the ADB ground (black) to any of the "GND" on the Teensy
+    * the ADB data bus (green) to "C7" (in the corner) on the Teensy
+    * the last ADB pin (PSW/Power On) must be left unconnected. 
+
+      Check out the ADB pinout on wikipedia:
+      [http://en.wikipedia.org/wiki/Apple_Desktop_Bus]
+
+      Since each ADB device is meant to be on a "bus" they all sports a male and female mini-din connector. We can connect to any one without a problem.
+
+      Triple-check all your connections and that there is no "cross-overs", etc. A bad short circuit has the potential to permanently damage your computer.
+
+  * Run the WaxBeeConfig tool, follow the instructions. 
+
+  * The original driver of the emulated USB tablet can be installed/re-installed at any time
+
+= Device Support =
+
+== ADB ==
+GD-0806-A  Intuos1 8x6
+
+== USB emulation ==
+Graphire3 8x6 
