@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>WaxBeeConfig</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>src/WaxB_Adb2Usb.hex</name>
+			<type>1</type>
+			<locationURI>WORKSPACE_LOC/WaxB_Adb2Usb/Release/WaxB_Adb2Usb.hex</locationURI>
+		</link>
+		<link>
+			<name>src/org/waxbee/teensy/extdata/ConfigTemplate.java</name>
+			<type>1</type>
+			<locationURI>WORKSPACE_LOC/WaxBeeExtDataGen/ConfigTemplate.java</locationURI>
+		</link>
+		<link>
+			<name>src/org/waxbee/teensy/extdata/ExtDataConstant.java</name>
+			<type>1</type>
+			<locationURI>WORKSPACE_LOC/WaxBeeExtDataGen/ExtDataConstant.java</locationURI>
+		</link>
+	</linkedResources>
+</projectDescription>

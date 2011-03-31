@@ -1,0 +1,240 @@
+#------------------------------------------------------------------------------
+# WaxBee configuration
+#------------------------------------------------------------------------------
+NAME = "ADB UD-0608-A Debug"
+DESCRIPTION = "Interface an ADB-based Digitizer II (Ultrapad) UD-0608-A for Debugging"
+SLAVE_TABLET_X_MAX = 20480
+SLAVE_TABLET_Y_MAX = 15360
+USB_TABLET_X_MAX = 16704
+USB_TABLET_Y_MAX = 12064
+
+# Valid choices for USB_PORT:
+# 0: DISABLED
+# 1: DIGITIZER
+# 2: DEBUG
+
+USB_PORT = 2
+
+# Valid choices for SERIAL_PORT:
+# 0: DISABLED
+# 1: SLAVE_DIGITIZER
+# 2: DEBUG
+
+SERIAL_PORT = 0
+
+# Valid choices for ADB_PORT:
+# 0: DISABLED
+# 1: SLAVE_DIGITIZER      
+
+ADB_PORT = 1
+
+# USB Configuration
+#
+# USB Device Descriptor
+
+USB_DEVICEDESC = @[ 
+	18,					# bLength
+	1,					# bDescriptorType
+	LE16(0x200),				# bcdUSB
+	0,					# bDeviceClass
+	0,					# bDeviceSubClass
+	0,					# bDeviceProtocol
+	32,					# bMaxPacketSize0 for endpoint 0
+	LE16(0x16C0),				# vendor id - "HidListen" vendor id
+	LE16(0x0479),				# product id - "HidListen" product id
+	LE16(0x0100),				# bcdDevice - dummy version number
+	1,					# iManufacturer string
+	2,					# iProduct string
+	0,					# iSerialNumber
+	1					# bNumConfigurations
+]
+
+# USB Config Descriptor
+
+USB_CONFIGDESC = @[
+	9, 					# bLength - USB spec 9.6.3, page 264-266, Table 9-10
+	2,					# bDescriptorType;
+	LE16(34),			# wTotalLength (9+9+9+7)
+	1,					# bNumInterfaces
+	1,					# bConfigurationValue
+	0,					# iConfiguration
+	0xC0,				# bmAttributes
+	50,					# bMaxPower (mA/2)(Graphire3 = 40mA, Teensy = ??? : Total: 100mA)
+	9,					# bLength - interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
+	4,					# bDescriptorType
+	0,					# bInterfaceNumber
+	0,					# bAlternateSetting
+	1,					# bNumEndpoints
+	0x03,				# bInterfaceClass (0x03 = HID)
+	0x00,				# bInterfaceSubClass (0x01 = Boot)
+	0x00,				# bInterfaceProtocol (0x02 = Mouse)
+	0,					# iInterface
+	9,					# bLength - HID interface descriptor, HID 1.11 spec, section 6.2.1
+	0x21,				# bDescriptorType
+	0x11, 0x01,			# bcdHID - HID spec version 1.11
+	0,					# bCountryCode
+	1,					# bNumDescriptors
+	0x22,				# bDescriptorType
+	LE16(21),			# wDescriptorLength  HIDREPORTDESC Length (21)
+	7,					# bLength - endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
+	5,					# bDescriptorType
+	0x83,				# bEndpointAddress  3 | 0x80
+	0x03,				# bmAttributes (0x03=intr)
+	LE16(32),			# wMaxPacketSize (32 bytes)
+	1					# bInterval max number of ms between transmit packets
+]
+
+# USB HID Report Descriptor        
+
+USB_HIDREPORTDESC = @[  
+	0x06, LE16(0xFF31),		# Usage Page 0xFF31 (vendor defined)
+	0x09, 0x74,				# Usage 0x74
+	0xA1, 0x53,				# Collection 0x53
+	0x75, 0x08,				# report size = 8 bits
+	0x15, 0x00,				# logical minimum = 0
+	0x26, 0xFF, 0x00,			# logical maximum = 255
+	0x95, 32,				# report count (or size) (32)
+	0x09, 0x75,				# usage
+	0x81, 0x02,				# Input (array)
+	0xC0					# end collection
+]
+
+USB_STRING1 = "WaxBee"
+USB_STRING2 = "WaxBee Debugger"
+USB_STRING3 = ""
+USB_STRING4 = ""
+USB_STRING5 = ""
+
+# Valid choices for USB_PROTOCOL
+# 4: WACOM_PROTOCOL4	
+
+USB_PROTOCOL = 4
+
+USB_ENDPOINT0SIZE = 32
+USB_ENDPOINT1SIZE = 0
+USB_ENDPOINT3SIZE = 32
+
+USB_X_MIN = 0
+USB_Y_MIN = 0
+USB_X_MAX = 16704
+USB_Y_MAX = 12064
+USB_X_ANCHOR_MIN = 0
+USB_Y_ANCHOR_MIN = 0
+USB_X_ANCHOR_MAX = 0
+USB_Y_ANCHOR_MAX = 0
+USB_PRESSURE_MAX = 511
+
+# "Slave" Digitizer (ADB/Serial) config
+#
+# Valid choices for SLAVE_PROTOCOL:
+# 1: WACOM_ADB
+
+SLAVE_PROTOCOL = 1
+
+# Orientation affect X,Y coordinates but should also
+# affect "tilt" and "rotation" values accordingly.
+# NOTE: Data is rotated before MIN/MAX/ANCHOR transformation
+# Valid choices for SLAVE_ORIENTATION:
+# 0: NORMAL
+# 1: ROTATED_RIGHT
+# 2: UPSIDE_DOWN
+# 3: ROTATED_LEFT
+
+SLAVE_ORIENTATION = 0
+
+SLAVE_X_MIN = 0
+SLAVE_Y_MIN = 0
+SLAVE_X_MAX = 20480
+SLAVE_Y_MAX = 15360
+SLAVE_X_ANCHOR_MIN = 0
+SLAVE_Y_ANCHOR_MIN = 0
+SLAVE_X_ANCHOR_MAX = 0
+SLAVE_Y_ANCHOR_MAX = 0
+SLAVE_PRESSURE_MAX = 255
+
+# 16Mhz is not recommended with 3.3v supply. The slower, the less power it takes.#
+
+# Valid choices for CPU_CORE_CLOCK:
+# 0: F_16MHZ
+# 1: F_8MHZ
+
+CPU_CORE_CLOCK = 0
+
+# Serial port speed at initialization time.#
+
+# Valid choices for INITIAL_SERIAL_PORT_SPEED:
+# 0: BAUD_9600
+# 1: BAUD_19200
+# 2: BAUD_38400
+
+INITIAL_SERIAL_PORT_SPEED = 0
+
+# Serial port speed during normal operation.#
+
+# Valid choices for SERIAL_PORT_SPEED:
+# 0: BAUD_9600
+# 1: BAUD_19200
+# 2: BAUD_38400
+
+SERIAL_PORT_SPEED = 0
+
+#==============================================================================
+# A note about this file and its format for the braves that wants to tweak stuff
+#------------------------------------------------------------------------------
+# Do not change anything here unless you think you know what you are doing. :)
+#
+# Note that even if it stops working (a thing that can happen quite easily), 
+# there are virtually no chances that you break something "physically".
+#
+# In any case, it cannot "brick" the WaxBee, there is always a way out. At worse, 
+# it might crash your OS (or the USB driver) or make it install USB drivers you 
+# did not want. Nothing that cannot be fixed.
+#
+#------------------------------------------------------------------------------
+# Configuration items have the format :
+#
+#   NAME = 123
+#
+# Numeric values can be expressed as base-10 (decimal) or base-16 (hexadecimal) 
+# The hexadecimal notation requires 0x to be prepended. Example: 0x5e
+#
+# Text requires double-quotes as delimiters.
+#
+# Text comments starts with a # and goes up to the end of the line. Empty lines
+# are OK.
+#
+# Each entry has a multi-line comment shown before. These are fixed. They will
+# will be overriden when the WaxBee setup utility writes-back this file when 
+# "saving".
+#
+# Each value can have a one-line comment attached which will be shown after the
+# value on the same line. This comment is tied to the value and will be 
+# retained after a read/write of the file (unless the value changed).
+# 
+#   USB_PORT = 2  # DEBUG
+#
+# About Multi-byte values (e.g. @[ ... ] ):
+#
+# The values are separated by commas and can be expressed as base-10 (decimal)
+# or base-16 (hexadecimal). The hexadecimal notation requires 0x to be
+# prepended.
+#
+# Each value is normally shown one byte (8 bits) at a time, but two bytes (16 
+# bits) are supported.# Currently, only bytes in "Little-Endian mode" is
+# supported. Use the notation: LE16() (i.e. Little Endian, 16-bits). 
+#
+# For example:
+#
+# 	LE16(0x0c17),
+#
+# A one-line comment can be "attached" to a value location, that comment
+# reflects all the bytes that occured before the previous comment and should be
+# shown togheter (on the same line).  These comments are tied to the "values".
+# These comments will be retained when the waxbee setup reads/writes a 
+# configuration file.
+#
+# Typically a config is always a "copy" of an existing one which already
+# contained commented values
+#
+#==============================================================================
+
