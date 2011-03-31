@@ -1,0 +1,175 @@
+Extracted from an ArtPad II, model UD-0608-A using ADB Analyzer, a 9500, a Powerbook G3, one dead ADB mouse, a Newton 
+keyboard, 4x2.2K resistors, 1 1K in line resistor pack, a bit of solderless breadboard, and some wire.  Not pretty.
+
+By default, this tablet appears at handler 0x3a, and gets moved to handler 0x68 by the Wacom driver.  That's where we 
+want to put it, I think.  Is it by chance that 0x68 is a truncation of 0608?  Would a 1212 be moved to 0xcc?  I think 
+it likely.  Need to get someone to try, I guess.
+
+DEVICE INFORMATION
+==================
+
+Static device information is coded in register 1 and Register 3.  Reg 3 is, as usual, the handler id. 
+
+ADB Register 1 holds 8 bytes, and appears to encode the following:
+?? ?? xx xx yy yy ?? ?? 
+
+Resolution of my tablet is 2450 dpi (0x5000 / 2450 = 8, 0x3e00 / 2450 = 6) or 0.01mm
+
+xxxx : maximum x co-ordinate
+yyyy : maximum y co-ordinate
+
+items referred to as ?? I haven't figured out yet.
+
+All but the second byte appear to be static data.  Second byte is random, but seems to be fixed per setting of R3, although its value 
+doesn't seem to be related to r3 value in any way.
+
+RESET PROCESSING
+================
+
+Packets sent after address resolution is finished
+
+Talk		R1	38 20 50 00 3c 00 06 17		// Talk register 1, presumably to determine if this is actually a wacom tablet
+Talk		R0	a6 bc 0b 4b 00 80 1f 19		// Talk register 0, doesn't always do this.  Possibly irrelevant, may be triggered 
+																			// by normal ADB polling?
+Talk		R3	6e 3a											// Talk register 3, find out what handler it's set to.
+Talk		R1	38 20 50 00 3c 00 06 17		// Talk register 1, Always an identical result to the previous talk
+
+Listen	R3	6f 68											// Listen register 3, set handler to 68
+Talk		R3	6x 68											// Talk register 3, did it take?
+
+Listen	R1	67 68											// Listen register 1, do what?  First byte changes, seems irrelevant.
+Talk		R1	38 03 50 00 3c 00 06 17		// After the listen, byte 2 has changed, but there seems to be no reason to it.
+
+Talk		R0														// No data in this case, will repeat if there is any, this is probably a normal poll
+Talk		R3	61 68 										// Appears to be normal MacOS ADB init handling, probably not required
+
+POLLING
+=======
+
+Despite Dave Fleck's assurances to the contrary, there appears to be nothing over-onerous in the protocol.  Each 
+poll interval can result in 8 bytes being sent, with the command byte that makes 9 bytes per packet, at 100Hz, or 8100bit/s.
+Even USB 1.1 devices should be able to handle 12Mbit/s, so we're not even close to throttling USB. It has to be said, it is 
+pretty close to thrashing  ADB, which could be an issue for OSX, but to be frank, I think Wacom have been talking crap 
+since day 1.  Anyway, back to matters in hand.
+
+The tablet polls just like any other device, with a talk R0 command, which returns an 8 byte packet if there's anything to 
+report.
+
+In short, it looks like this:
+
+Talk		R0	ss xx xx yy yy pp tx ty 
+
+ss   : status
+xxxx : x coordinate
+yyyy : y coordinate
+pp   : pressure, 
+tx   : X tilt, +-127, -ve to the left
+ty   : Y tilt, +-127, -ve away from user
+
+
+The status byte is similar to, but not the same as, that used by the Wacom IV binary protocol:
+
+Bit 	Comment
+7			Always 1
+6			Pointer in proximity indicator
+5			Stylus : 1, Cursor : 0
+4			Macro Button Depressed (click)
+3			B3     always zero?
+2			B2     sidebutton2
+1			B1     sidebutton1
+0			B0     nib
+
+
+Button encoding, as given by the nybble defined by B0..B3 depends on the tool in use.  Nothing like a standard 
+approach, after all, and this is nothing like one.
+
+If it's a puck:
+Button = 1 - Front centre
+Button = 2 - Left
+Button = 3 - back centre
+button = 4 - right
+
+For the stylus (ultrapen eraser), it's all a bit arse arse as the number is a bitmap of the "tip pressed" and button
+Button = 1 - 0001 nib pressed
+Button = 2 - 0010 side button 1 pressed
+Button = 3 - 0011 nib pressed and side button 1 pressed
+button = 4 - 0100 side button 2 pressed in proximity *or* eraser in proximity
+Button = 5 - 0101 Eraser pressed *or* side button 2 pressed and tip pressed
+Button = 6 - 0110 Eraser in proximity with side button 1 pressed
+Button = 7 - 0111 can't do this, I don't think.
+
+A little explanation from the wacom docs...
+# When the eraser is in proximity of the tablet, or the second side switch is pressed while the pen is 
+# in proximity, then the tablet will transmit a switch number of 4. When the eraser tip is pressed 
+# against the tablet, or the second side switch is pressed while the pen tip is pressed against the 
+# tablet, then the tablet will transmit a switch state of 5. 
+#
+# Note that the tablet cannot detect the difference between an eraser in proximity and a pen tip with 
+# the 2nd side switch pressed in proximity (switch state 4), and it cannot detect the difference 
+# between an eraser pressed against the tablet and a tip pressed against the tablet while the 2nd side 
+# switch is pressed (switch state 5).
+# 
+# Note: The WACOM drivers differentiate between the eraser function and the second side switch 
+# function by analyzing the first switch state transmitted after the pen enters proximity: if the initial 
+# switch state is 4, the driver assumes that an eraser is now in proximity, and if the initial switch 
+# state is 0 and changes later to 4 or 5, then the driver assumes that the pen tip is in proximity and 
+# that the 2nd side switch was pressed at the later moment. 
+
+
+Back to the rest of the packet:
+
+Following the status byte, there are 2 bytes of X coordinate, and 2 bytes of Y coordinate, both of which 
+are clipped to the maximum dimension as specified in the register 1 packet, then one byte of signed pressure, with -128 being the minimum / off tablet reading, and 127 being the highest, and a signed byte each for x tilt and y tilt.  X tilt is negative to the left, y is negative *away* from the user.
+
+For a puck, pp, tx and ty will be zero
+
+
+OUT OF PROXIMITY
+================
+
+When the tool moves out of proximity, you will get a packet with a status of '80' or 'A0' (depending on tool),
+with last received data in the rest of the packet.  The status byte will look like this, even if a button was 
+pressed as the tool went out of prox.
+
+ss = %10x00000
+
+MACRO BUTTONS
+=============
+
+Macro buttons are indicated by a single "out of proximity" message, but with the button depressed flag set, as follows:
+
+Talk		R0 %10x1xxxx 00 bb 00 00 00 00 00
+
+bb is the button number, and the x's in the status byte change depending on tool and button used.  All other data is zero.
+
+
+OTHER STUFF
+===========
+
+The Stylus seems to need occasional R2 packets as well, not sure what this is for, there seems no rhyme or reason 
+to when they are requested, and what they contain seems random.  8 bytes of random.  They are requested *directly* 
+after an Talk R0 event (i.e. not polled), and followed, again immediately, immediately by an talk R0.
+They appear to be applied to device address ^ 0x08, which is unused (by chance?) but that could be my stupid 
+analyzer setup playing up.  I have no idea what these are, anyway, but the R0 data seems to be enough to be going 
+on with for the moment.
+
+
+R2 Data (without driver installed)
+==================================
+
+Further analysis needed on this
+R2 appears to always return data, it could be polled without requiring a kernel extension at all, but we'd have to deal with 
+(i.e. block) the R0 data being picked up by the mouse handler.  Not sure what the format of the status byte in R2 is, the rest 
+seems consistent with R0 and the handler having been changed.
+
+
+DEVICE INFORMATION
+==================
+
+Device	Original              New					Register 1								Who
+		Handler              Handler
+UD-0608-A 	0x3a			0x68				38 20 50 00 3c 00 06 17		Me
+UD-0608-A	0x3a			0x68				38 79 50 00 3C 00 06 17		Adam Ladds (aladds@gmail.com)
+GD-0912-A	0x6a			0x6a				04 12 77 10 5d fc 00 07		Bernhardt (tabletmagic forum) (confirms scaling at 2450dpi)
+
+ADB Parser from Griffin links 3a to "ArtZ" models, 6a to "Intuos", which might well make sense.  Were there any other families with ADB interfaces?
