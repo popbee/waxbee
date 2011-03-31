@@ -1,0 +1,392 @@
+{
+	identifier_prefix: 'EXTDATA_',
+
+	constants:
+	{
+		VERSION : 3,
+		MAIN_TABLE_ADDRESS_PLACEHOLDER:	0x0123,
+		USB_STRING_COUNT: 5,
+		COUNT: 37
+	},
+
+	items: 
+	{
+		MAINTABLE : {
+			index:0,
+			type:special,
+			name:'MainTable location'
+		},
+		
+		USB_PORT : {
+			index:1,
+			type:enum,
+			name:'USB Port Usage',
+			enum: { 
+				DISABLED:  { 
+					value:0, 
+					name:'Disabled', 
+					comment:'USB Port is turned off' 
+				},
+				DIGITIZER: { 
+					value:1, 
+					name:'Digitizer Tablet', 
+					comment:'USB Port set as a Digitizer Tablet' 
+				},
+				DEBUG:     { 
+					value:2, 
+					name:'Debug Console', 
+					comment:'USB Port set as a Debug Console (hid_listen utility)' 
+				}
+			}
+		},
+		
+		SERIAL_PORT: {
+			index:2,
+			type:enum,
+			name:'Serial Port Usage',
+			enum: {
+				DISABLED: {
+					value:0,
+					name:'Disabled',
+					comment:'Serial Port is turned off'
+				},
+				SLAVE_DIGITIZER: {
+					value:1,
+					name:'Slave Digitizer',
+					comment:'Slave tablet connected through the serial port'
+				},
+				DEBUG: {
+					value:2,
+					name:'Debugging Output',
+					comment:'Serial Port is used as the console port output for debuging purposes'
+				}
+			}
+		},
+
+		ADB_PORT: {
+			index:3,
+			type:enum,
+			name:'ADB Port Usage',
+			enum: {
+				DISABLED: {
+					value:0,
+					name:'Disabled',
+					comment:'ADB Port is turned off'
+				},
+				SLAVE_DIGITIZER: {
+					value:1,
+					name:'Slave Tablet Digitizer',
+					comment:'ADB Port is used to talk to an ADB Tablet'
+				}
+			}
+		},
+		
+		USB_DEVICEDESC: {
+			index:4,
+			type:binary,
+			name: 'USB Device Descriptor'
+		},
+		
+		USB_CONFIGDESC: {
+			index:5,
+			type:binary,
+			name: 'USB Configuration Descriptor'
+		},
+
+		USB_HIDREPORTDESC: {
+			index:6,
+			type:binary,
+			name: 'USB HID Report Descriptor'
+		},
+
+		USB_STRING1: {
+			index: 7,
+			type:string,
+			name:'USB Descriptor String index 01'
+		},
+
+		USB_STRING2: {
+			index: 8,
+			type:string,
+			name:'USB Descriptor String index 02'
+		},
+		
+		USB_STRING3: {
+			index: 9,
+			type:string,
+			name:'USB Descriptor String index 03'
+		},
+		
+		USB_STRING4: {
+			index: 10,
+			type:string,
+			name:'USB Descriptor String index 04'
+		},
+		
+		USB_STRING5: {
+			index: 11,
+			type:string,
+			name:'USB Descriptor String index 05'
+		},
+			
+		USB_PROTOCOL: {
+			index:12,
+			type:enum,
+			name:'USB Protocol',
+			enum: {
+				WACOM_PROTOCOL4:
+				{
+					value:4,
+					name:'Wacom Protocol 4'
+				},
+				WACOM_PROTOCOL5:
+				{
+					value:5,
+					name:'Wacom Protocol 5'
+				}
+			}
+		},
+
+		USB_ENDPOINT0SIZE: {
+			index:13,
+			name:'USB Endpoint 0 Buffer size'
+		},
+		
+		USB_ENDPOINT1SIZE: {
+			index:14,
+			name:'USB Endpoint 1 Buffer size'
+		},
+		
+		USB_ENDPOINT3SIZE: {
+			index:15,
+			name:'USB Endpoint 3 Buffer size'
+		},
+		
+		USB_X_MIN: {
+			index:16,
+			type:uint16,
+			name:'USB Minimum X position (left)'
+		},
+		
+		USB_Y_MIN: {
+			index:17,
+			type:uint16,
+			name:'USB Minimum Y position (top)'
+		},
+		
+		USB_X_MAX: {
+			index:18,
+			type:uint16,
+			name:'USB Maximum X position (right)'
+		},
+		
+		USB_Y_MAX: {
+			index:19,
+			type:uint16,
+			name:'USB Maximum Y position (bottom)'
+		},
+		
+		USB_X_ANCHOR_MIN: {
+			index:20,
+			type:uint16,
+			name:'USB Minimum X anchor position (left) (0 to disable)'
+		},
+		
+		USB_Y_ANCHOR_MIN: {
+			index:21,
+			type:uint16,
+			name:'USB Minimum Y anchor position (top) (0 to disable)'
+		},
+		
+		USB_X_ANCHOR_MAX: {
+			index:22,
+			type:uint16,
+			name:'USB Maximum X anchor position (right) (0 to disable)'
+		},
+		
+		USB_Y_ANCHOR_MAX: {
+			index:23,
+			type:uint16,
+			name:'USB Maximum Y anchor position (bottom) (0 to disable)'
+		},
+
+		USB_PRESSURE_MAX: {
+			index:24,
+			type:uint16,
+			name:'USB Stylus Pressure maximum'
+		},
+
+		SLAVE_PROTOCOL: {
+			index:25,
+			type:enum,
+			name:'Slave (ADB/Serial side) Protocol',
+			enum: {
+				WACOM_ADB:
+				{
+					value:1,
+					name:'Wacom ADB'
+				},
+				WACOM_ISDV4:
+				{
+					value:2,
+					name:'Wacom ISDV4 (Penenabled)'
+				},
+				WACOM_PROTOCOL5:
+				{
+					value:3,
+					name:'Wacom Protocol 5'
+				}
+			}
+		},
+
+		SLAVE_ORIENTATION: {
+			index:26,
+			type:enum,
+			name: 'Slave Tablet Orientation',
+			comment: 'Orientation affect X,Y coordinates but should also\naffect "tilt" and "rotation" values accordingly.\nNOTE: Data is rotated before MIN/MAX/ANCHOR transformation',
+			enum: {
+				NORMAL: {
+					value:0,
+					name:'Standard Orientation',
+					comment:'Tablet original orientation'
+				},
+				ROTATED_RIGHT: {
+					value:1,
+					name:'Rotated Right',
+					comment:'Tablet is rotated 90 degrees clockwise (to the right)'
+				},
+				UPSIDE_DOWN: {
+					value:2,
+					name:'Upside Down',
+					comment:'Tablet is rotated 180 degrees'
+				},
+				ROTATED_LEFT: {
+					value:3,
+					name:'Rotated Left',
+					comment:'Tablet is rotated 90 degrees anti-clockwise (to the left)'
+				}
+			}
+		},
+
+		SLAVE_X_MIN: {
+			index:27,
+			type:uint16,
+			name:'Slave Minimum X position (left)'
+		},
+		
+		SLAVE_Y_MIN: {
+			index:28,
+			type:uint16,
+			name:'Slave Minimum Y position (top)'
+		},
+		
+		SLAVE_X_MAX: {
+			index:29,
+			type:uint16,
+			name:'Slave Maximum X position (right)'
+		},
+		
+		SLAVE_Y_MAX: {
+			index:30,
+			type:uint16,
+			name:'Slave Maximum Y position (bottom)'
+		},
+		
+		SLAVE_X_ANCHOR_MIN: {
+			index:31,
+			type:uint16,
+			name:'Slave Minimum X anchor position (left) (0 to disable)'
+		},
+		
+		SLAVE_Y_ANCHOR_MIN: {
+			index:32,
+			type:uint16,
+			name:'Slave Minimum Y anchor position (top) (0 to disable)'
+		},
+		
+		SLAVE_X_ANCHOR_MAX: {
+			index:33,
+			type:uint16,
+			name:'Slave Maximum X anchor position (right) (0 to disable)'
+		},
+		
+		SLAVE_Y_ANCHOR_MAX: {
+			index:34,
+			type:uint16,
+			name:'Slave Maximum Y anchor position (bottom) (0 to disable)'
+		},
+
+		SLAVE_PRESSURE_MAX: {
+			index:35,
+			type:uint16,
+			name:'Slave Stylus Pressure maximum'
+		},
+
+		CPU_CORE_CLOCK: {
+			index:36,
+			type:enum,
+			name:'CPU core clock',
+			comment:'16Mhz is not recommended with 3.3v supply.',
+			enum: {
+				F_16MHZ:
+				{
+					value:0,
+					name:'16 Mhz - full speed'
+				},
+				F_8MHZ:
+				{
+					value:1,
+					name:'8 Mhz - half speed'
+				}
+			}
+		},
+		
+		INITIAL_SERIAL_PORT_SPEED: {
+			index:37,
+			type:enum,
+			name:'Initial Serial Port Speed',
+			comment:'Serial port speed at initialization time.',
+			enum: {
+				BAUD_9600:
+				{
+					value:0,
+					name:'9600 Baud, N-8-1'
+				},
+				BAUD_19200:
+				{
+					value:1,
+					name:'19200 Baud, N-8-1'
+				},
+				BAUD_38400:
+				{
+					value:2,
+					name:'38400 Baud, N-8-1'
+				}
+			}
+		},
+		
+		SERIAL_PORT_SPEED: {
+			index:38,
+			type:enum,
+			name:'Serial Port Speed',
+			comment:'Serial port speed during normal operation.',
+			enum: {
+				BAUD_9600:
+				{
+					value:0,
+					name:'9600 Baud, N-8-1'
+				},
+				BAUD_19200:
+				{
+					value:1,
+					name:'19200 Baud, N-8-1'
+				},
+				BAUD_38400:
+				{
+					value:2,
+					name:'38400 Baud, N-8-1'
+				}
+			}
+		}
+	}
+}
