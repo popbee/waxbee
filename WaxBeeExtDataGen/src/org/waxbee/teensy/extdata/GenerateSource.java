@@ -221,9 +221,8 @@ public class GenerateSource
 				writer.write(", 0, null"); // value & value comment
 			}
 			else if(typeClass.equals("EnumItem"))
-			{
-				writer.write(", 0, null,\n"); // value & value comment
-				writer.write("\t\t\tArrays.asList(\n");
+			{				
+				writer.write(", ");
 				
 				JSONObject enumobj = itemobject.optJSONObject("enum");
 				
@@ -239,6 +238,10 @@ public class GenerateSource
 					else
 					{
 						isFirst = false;
+
+						writer.write(Integer.toString(enumitem.getInt("value")));
+						writer.write(", null,\n"); // value & value comment
+						writer.write("\t\t\tArrays.asList(\n");
 					}
 
 					writer.write("\t\t\t\tnew ConfigItem.EnumValue(");
