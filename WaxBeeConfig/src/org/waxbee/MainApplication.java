@@ -17,8 +17,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -27,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -77,8 +80,6 @@ public class MainApplication extends JFrame
 	{
 		theMainApp = this;
 
-		setTitle("WaxBee Config");
-		setIconImage(getIcon("appicon.png").getImage());
 
 		createMenu();
 
@@ -92,7 +93,7 @@ public class MainApplication extends JFrame
 				"[align top,grow][30px::]"));  // rows constraints: [30px::] is for the bottom status bar
 		
 		Container p = new Panel(new MigLayout("wrap 1","[10px::]",""));
-		
+
 		cp.add(p);
 
 		addSeparator(p, "Configuration");
@@ -120,7 +121,10 @@ public class MainApplication extends JFrame
 		itsMonitorsCombo = new JComboBox(new Vector<Monitor>(fetchMonitors()));
 		itsMonitorsCombo.setSelectedIndex(0);
 		p.add(itsMonitorsCombo, "wmin 40,grow 0,wrap");
-				
+
+		setIconImage(getImage("appicon.png"));
+		setTitle("Waxbee Config");
+
 		try
 		{
 			itsWaxbeeConfig = ConfigFileParser.loadFile(WAXBEE_CONFIG_TXT);
@@ -129,7 +133,7 @@ public class MainApplication extends JFrame
 		{
 			itsWaxbeeConfig = ConfigTemplate.create();
 		}
-		
+	
 		displayConfig();
 		pack();
 		setLocationRelativeTo(null);
@@ -556,6 +560,21 @@ public class MainApplication extends JFrame
 		String imagePath = "/org/waxbee/" + imageName;
 		URL url = getClass().getResource(imagePath);
 		return new ImageIcon(url);
+	}
+
+	public BufferedImage getImage(String imageName)
+	{
+		try
+		{
+			String imagePath = "/org/waxbee/" + imageName;
+			URL url = getClass().getResource(imagePath);
+			return ImageIO.read(url);
+		}
+		catch(IOException ex)
+		{
+			JOptionPane.showMessageDialog(MainApplication.this, ex.getMessage());
+			return null;
+		}
 	}
 
 	private void saveConfig() throws Exception
