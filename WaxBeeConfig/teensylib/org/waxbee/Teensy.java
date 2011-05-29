@@ -1,11 +1,41 @@
 package org.waxbee;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+
+import javax.swing.JOptionPane;
+
+import net.miginfocom.layout.PlatformDefaults;
+
 public class Teensy
 {
 	static 
 	{
-//		System.loadLibrary("teensy64");
-		System.load("c:\\dev\\workspace\\waxbeeconfig\\teensylib\\teensy64.dll");
+		String libname;
+		
+		libname = "teensy64.dll";
+		
+		try
+		{
+			File tempfile = File.createTempFile("teensy", ".jnilib");
+			FileOutputStream os = new FileOutputStream(tempfile);
+			InputStream is = Teensy.class.getClassLoader().getResourceAsStream(libname);
+			byte[] buffer = new byte[32*1024];
+			
+			int len;
+			while((len = is.read(buffer)) >= 0)
+				os.write(buffer,0,len);
+			
+			is.close();
+			os.close();
+			System.load(tempfile.getAbsolutePath());
+			tempfile.deleteOnExit();
+		}
+		catch(Exception ex)
+		{
+			JOptionPane.showMessageDialog(null, "Cannot load teensy native library: " + libname + " - " + ex.getMessage());
+		}
 	}
 
 	public native int version();
