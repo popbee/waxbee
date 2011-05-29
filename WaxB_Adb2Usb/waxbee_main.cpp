@@ -59,54 +59,14 @@ uint8_t buffer[8] = {0x02, 0x00, 0,0, 0,0, 0x00,0x00};
 
 uint8_t bufferDebug[32] = {0xF0, 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,0,0,0,0,0,0,0,0,0,0,0,0,30};
 
-void send_wacom_packet(uint16_t pressure, uint16_t x, uint16_t y)
+void send_outofrange_event()
 {
-	console::print("[Packet: x=");
-	console::printNumber(x);
-	console::print(", y=");
-	console::printNumber(y);
-	console::print(", pressure=");
-	console::printNumber(pressure);
-	console::print(']');
-//	console::flush();
+	Pen::PenEvent penEvent;
 
-	buffer[1] = 0x90;
+	penEvent.proximity = 0;
+	penEvent.is_mouse = 0;
 
-	buffer[2] = x;
-	buffer[3] = x >> 8;
-
-	buffer[4] = y;
-	buffer[5] = y >> 8;
-
-	buffer[6] = pressure;
-	buffer[7] = (pressure >> 8) & 0x1;
-
-	if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
-		usb_rawhid_send(buffer, 50);
-}
-
-void send_wacom_packet_double(double pressure, double x, double y)
-{
-	// fix the positions into some arbitrary tablet "space".
-
-	send_wacom_packet((uint16_t)(pressure*511.0), 1000+(uint16_t)(x*8000.0), 1000+(uint16_t)(y*6000.0));
-}
-
-void send_wacom_packet_pen_out()
-{
-//	console::print("[Packet: all zeros]");
-//	console::flush();
-
-	buffer[1] = 0;
-	buffer[2] = 0;
-	buffer[3] = 0;
-	buffer[4] = 0;
-	buffer[5] = 0;
-	buffer[6] = 0;
-	buffer[7] = 0;
-
-	if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
-		usb_rawhid_send(buffer, 50);
+	send_pen_event(penEvent);
 }
 
 void error_condition(uint8_t code)
@@ -204,8 +164,8 @@ int main(void)
 	}
 //        static double rad = 0;
 
-	// send a first packet with all zeros
-	send_wacom_packet_pen_out();
+	// send a first packet to signify that there is no pen in proximity
+	send_outofrange_event();
 
         // Configure timer 0 to generate a timer overflow interrupt (100Hz)
         timer0_10ms = 0;
@@ -225,7 +185,9 @@ int main(void)
         	if(serial_tablet)
         		serial::serialPortProcessing();
 
-/*		if (timer0_10ms >= 2000/10)
+/*		// the following generates a series of "pressured" strokes.
+ *
+ * 		if (timer0_10ms >= 2000/10)
 		{
 			LED_TOGGLE;
 
@@ -252,10 +214,8 @@ int main(void)
 			// Need not exceed ~500ms it appears (for the Graphire3 on Windows at least)
 //			send_wacom_packet_double(pressure, x, y);
 
-//			usb_rawhid_send_size(bufferDebug, 32, RAWHID_TX_ENDPOINT, 50);
-
 			// stroke end ?
-//			send_wacom_packet_pen_out();
+//			send_outofrange_event();
 		}
 */	}
 }

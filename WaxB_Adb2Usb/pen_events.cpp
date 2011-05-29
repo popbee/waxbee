@@ -227,16 +227,16 @@ namespace Pen
 		}
 	}
 
-	uint16_t scale_255_to_511(uint16_t source)
+	inline uint16_t scale_255_to_511(uint16_t source)
 	{
 		// this normally cannot get to 511, only 510. To get to 511 we need to jump a value.
 		// using standard maths would give us a "break" near the middle which might not be desirable
 		// so the solution to support 511, is to make 510 (or source=255) clamp to 511:
 
-		if(source < 255)
+//		if(source < 255)
 			return source << 1;
-		else
-			return 511;
+//		else
+//			return 511;
 	}
 
 	uint16_t scale_uint16(uint16_t sourcevalue, uint16_t maxsource, uint16_t maxtarget)
@@ -259,10 +259,27 @@ namespace Pen
 		console::printNumber(usbPressureMax);
 		console::print(")\n");
 */
-		if(slavePressureMax == 255 && usbPressureMax == 511)
-			return scale_255_to_511(sourcevalue);
+		if(sourcevalue == slavePressureMax)
+		{
+			// make sure we get to 100% pressure
+			return usbPressureMax;
+		}
 
-		console::print("...generic scaling\n");
+		if(slavePressureMax == 255 && usbPressureMax == 511)
+		{
+			// this normally cannot get to 511, only 510. To get to 511 we need to jump a value.
+			// using standard maths would give us a "break" near the middle which might not be desirable.
+			//
+			// so the solution is to compute max=510 (clamp to 511 when = 510, which is done in the
+			// '100%' step above):
+			//
+			// Note: this case could also apply to mappings like 255 -> 1023 but the aliasing is not
+			// as "bad".
+
+			return sourcevalue << 1;
+		}
+
+//		console::print("...generic scaling\n");
 
 		// generic scaling
 		return scale_uint16(sourcevalue, slavePressureMax, usbPressureMax);
@@ -282,5 +299,4 @@ namespace Pen
 				break;
 		}
 	}
-
 }

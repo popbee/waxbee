@@ -369,10 +369,22 @@ namespace ADB
 				// check if button2 is set.
 
 				penEvent.proximity = adbPacket.r0.proximity;
-				penEvent.eraser = eraser_mode;
 				penEvent.touch = adbPacket.r0.button0;
-				penEvent.button0 = adbPacket.r0.button1;
-				penEvent.button1 = adbPacket.r0.button2;
+
+				penEvent.eraser = eraser_mode;
+				if(eraser_mode)
+				{
+					// side buttons inactive in eraser mode,
+					// so hard-code them in the pen event.
+					penEvent.button0 = 0;
+					penEvent.button1 = 0;
+				}
+				else
+				{
+					penEvent.button0 = adbPacket.r0.button1;
+					penEvent.button1 = adbPacket.r0.button2;
+				}
+
 				penEvent.is_mouse = !adbPacket.r0.is_stylus;
 
 				penEvent.pressure = adbPacket.r0.pressure + 128;

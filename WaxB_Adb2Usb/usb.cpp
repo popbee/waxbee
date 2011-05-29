@@ -54,6 +54,23 @@ static inline void usb_wait_in_ready(void)
 	while (!(UEINTX & (1 << TXINI)))
 		;
 }
+/** return false if aborted */
+static inline bool usb_wait_in_ready_or_abort()
+{
+	uint8_t i;
+
+	// wait for host ready for IN packet
+	do
+	{
+		i = UEINTX;
+	} while (!(i & ((1 << TXINI) | (1 << RXOUTI))));
+
+	if (i & (1 << RXOUTI))
+		return false;
+
+	return true;
+}
+
 static inline void usb_send_in(void)
 {
 	UEINTX = ~(1 << TXINI);
@@ -102,8 +119,11 @@ bool usb_configured(void)
 #error "Buggy GCC 4.3.0 compiler, please upgrade!"
 #endif
 
-// send a packet, with timeout
-int8_t usb_rawhid_send_size(const uint8_t *buffer, uint8_t size, uint8_t endpoint, uint8_t timeout)
+/** send a USB packet, with timeout
+ *
+ * Note: size cannot be larger than the endpoint configured size (data will be truncated if so).
+ */
+int8_t usb_rawhid_send(const uint8_t *buffer, uint8_t size, uint8_t endpoint, uint8_t timeout)
 {
 	uint8_t intr_state;
 
@@ -140,58 +160,11 @@ int8_t usb_rawhid_send_size(const uint8_t *buffer, uint8_t size, uint8_t endpoin
 		UEDATX = *buffer++;
 
 	// transmit it now
-	cbi(UEINTX, TXINI);
-	cbi(UEINTX, FIFOCON);
-//	UEINTX = 0x3A;
-	SREG = intr_state;
-	return size;
-}
-
-// send a packet, with timeout
-int8_t usb_rawhid_send(const uint8_t *buffer, uint8_t timeout)
-{
-	uint8_t intr_state;
-
-	// if we're not online (enumerated and configured), error
-	if (!usb_configuration)
-		return -1;
-	intr_state = SREG;
-	cli();
-	tx_timeout_count = timeout;
-	UENUM = RAWHID_TX_ENDPOINT;
-	// wait for the FIFO to be ready to accept data
-	while (1)
-	{
-		if (UEINTX & (1 << RWAL))
-			break;
-		SREG = intr_state;
-		if (tx_timeout_count == 0)
-			return 0;
-		if (!usb_configuration)
-			return -1;
-		intr_state = SREG;
-		cli();
-		UENUM = RAWHID_TX_ENDPOINT;
-	}
-
-	// write 8 bytes from the FIFO
-	UEDATX = *buffer;
-	UEDATX = *(buffer+1); // this gets optimized to 3 cycles always
-	UEDATX = *(buffer+2);
-	UEDATX = *(buffer+3);
-	UEDATX = *(buffer+4);
-	UEDATX = *(buffer+5);
-	UEDATX = *(buffer+6);
-	UEDATX = *(buffer+7);
-
-	// transmit it now
 //	cbi(UEINTX, TXINI);
 //	cbi(UEINTX, FIFOCON);
-
 	UEINTX = 0x3A;
-
 	SREG = intr_state;
-	return 8;
+	return size;
 }
 
 // USB General/Device Interrupt - handle all device-level events
@@ -504,15 +477,8 @@ static inline bool handleHidEndpoint0()
 	{
 		case HID_GET_REPORT:
 		{
-			uint8_t i;
-
 			// wait for host ready for IN packet
-			do
-			{
-				i = UEINTX;
-			} while (!(i & ((1 << TXINI) | (1 << RXOUTI))));
-
-			if (i & (1 << RXOUTI))
+			if(!usb_wait_in_ready_or_abort())
 				return USBREQ_ABORT;
 
 			switch(req.value_low) // Report ID
@@ -539,9 +505,18 @@ static inline bool handleHidEndpoint0()
 					UEDATX = 0x00;
 					UEDATX = 0x00;
 					UEDATX = 0x00;
+
+					// send after 8 first bytes (endpoint0 buffer size)
+					usb_send_in();
+
+					// wait for host ready for (next) IN packet
+					if(!usb_wait_in_ready_or_abort())
+						return USBREQ_ABORT;
+
 					UEDATX = 0x00;
 
 					usb_send_in();
+					break;
 				}
 				case 6: // GetReport(6)
 				{
@@ -555,38 +530,21 @@ static inline bool handleHidEndpoint0()
 					UEDATX = 0x00;
 					UEDATX = 0x00;
 					UEDATX = 0x00;
+
+					// send after 8 first bytes (endpoint0 buffer size)
+					usb_send_in();
+
+					// wait for host ready for (next) IN packet
+					if(!usb_wait_in_ready_or_abort())
+						return USBREQ_ABORT;
+
 					UEDATX = 0x00;
 
 					usb_send_in();
+					break;
 				}
 			}
-			/*		uint8_t len = RAWHID_TX_SIZE;
-			 uint8_t n;
 
-			 do {
-			 uint8_t i;
-			 // wait for host ready for IN packet
-			 do {
-			 i = UEINTX;
-			 } while (!(i & ((1<<TXINI)|(1<<RXOUTI))));
-
-
-			 if (i & (1<<RXOUTI))
-			 	 return;	// abort
-
-
-			 // send IN packet
-			 n = len < ENDPOINT0SIZE ? len : ENDPOINT0SIZE;
-			 for (i = n; i; i--)
-			 {
-				 // just send zeros
-				 UEDATX = 0x3;
-			 }
-
-			 len -= n;
-			 usb_send_in();
-			 } while (len || n == ENDPOINT0SIZE);
-			 */
 			return USBREQ_SUCCESS;
 		}
 		case HID_SET_REPORT:
