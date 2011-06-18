@@ -6,7 +6,7 @@
 		VERSION : 3,
 		MAIN_TABLE_ADDRESS_PLACEHOLDER:	0x0123,
 		USB_STRING_COUNT: 5,
-		COUNT: 37
+		COUNT: 39
 	},
 
 	items: 
@@ -230,6 +230,11 @@
 				{
 					value:2,
 					name:'Wacom ISDV4 (Penenabled)'
+				},
+				WACOM_PROTOCOL4:
+				{
+					value:4,
+					name:'Wacom Protocol 4'
 				},
 				WACOM_PROTOCOL5:
 				{
