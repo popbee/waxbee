@@ -121,7 +121,7 @@ namespace Pen
 					uint16_t minsource, uint16_t maxsource,
 					uint16_t mintarget, uint16_t maxtarget)
 	{
-/*		console::print("compute_position(");
+		console::print("compute_position(");
 		console::printNumber(sourcevalue);
 		console::print(",");
 		console::printNumber(minsource);
@@ -132,7 +132,7 @@ namespace Pen
 		console::print(",");
 		console::printNumber(maxtarget);
 		console::print(")\n");
-*/
+
 
 		// crop big values to the "max" value
 		if(sourcevalue >= maxsource)

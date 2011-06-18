@@ -33,6 +33,7 @@ namespace serial
 	void init(void (*byteReceivedCallback)(uint8_t data));
 
 	void sendByte(uint8_t data);
+	void sendString(const char* data);
 	void flush();
 
 	void serialPortProcessing();

@@ -15,8 +15,21 @@
 
 namespace serial
 {
-	void setupPort(uint8_t baudRateCode)
+	void setBaudRate(uint8_t baudRateCode)
 	{
+		/* Wait for empty transmit buffer */
+		while ( !( UCSR1A & (1<<UDRE1)) );
+
+		// disable transmitter
+		cbi(UCSR1B,TXEN1);
+
+		// disable receiver
+		cbi(UCSR1B,RXEN1);
+
+		flush();
+
+		sbi(UCSR1A,TXC1); // clear tx flag
+
 		switch(baudRateCode)
 		{
 			case SERIAL_BAUDRATECODE_9600_8MHZ:
@@ -45,6 +58,16 @@ namespace serial
 				break;
 		}
 
+		// enable transmitter
+		sbi(UCSR1B,TXEN1);
+		// enable receiver
+		sbi(UCSR1B,RXEN1);
+	}
+
+	void setupPort()
+	{
+		UCSR1A = 0;
+
 		UCSR1B =	BITV(RXCIE1, 0) |
 				BITV(TXCIE1, 0) |
 				BITV(UDRIE1, 0) |
@@ -68,7 +91,7 @@ namespace serial
 		uint8_t baudRateCode =	(extdata_getValue8(EXTDATA_CPU_CORE_CLOCK) << 4) |
 					(extdata_getValue8(EXTDATA_INITIAL_SERIAL_PORT_SPEED));
 
-		setupPort(baudRateCode);
+		setBaudRate(baudRateCode);
 	}
 
 	void setNormalPortSpeed()
@@ -76,7 +99,7 @@ namespace serial
 		uint8_t baudRateCode =	(extdata_getValue8(EXTDATA_CPU_CORE_CLOCK) << 4) |
 					(extdata_getValue8(EXTDATA_SERIAL_PORT_SPEED));
 
-		setupPort(baudRateCode);
+		setBaudRate(baudRateCode);
 	}
 
 	// TODO: use interrupts to "lengthen" the receive buffer.
@@ -88,6 +111,7 @@ namespace serial
 
 	void init(void (*byteReceivedCallback)(uint8_t data))
 	{
+		setupPort();
 		setInitialPortSpeed();
 
 		itsByteReceivedCallback = byteReceivedCallback;
@@ -101,6 +125,15 @@ namespace serial
 
 		/* Put data into buffer, sends the data */
 		UDR1 = data;
+	}
+
+	/** blocking call */
+	void sendString(const char* data)
+	{
+		while(*data != 0)
+		{
+			sendByte(*data++);
+		}
 	}
 
 	/** must be called from the main loop, will return quickly if nothing to do */

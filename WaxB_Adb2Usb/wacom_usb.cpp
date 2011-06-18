@@ -273,6 +273,28 @@ namespace WacomUsb
 
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
 			usb_rawhid_send(protocol5_packet.buffer, 10, RAWHID_TX_ENDPOINT, 50);
+
+		if(console::console_enabled)
+		{
+			console::print("[USB Packet - prox:");
+			console::printbit(protocol5_packet.proximity);
+			console::print(" b0:");
+			console::printbit(protocol5_packet.button0);
+			console::print(" b1:");
+			console::printbit(protocol5_packet.button1);
+			console::print(" x:");
+			console::printNumber((((uint16_t)protocol5_packet.x_high) << 8) | protocol5_packet.x_low);
+			console::print(" y:");
+			console::printNumber((((uint16_t)protocol5_packet.y_high) << 8) | protocol5_packet.y_low);
+			console::print(" pressure:");
+			console::printNumber((((uint16_t)protocol5_packet.byte6) << 2) |
+					(((uint16_t)protocol5_packet.byte7) >> 6));
+			console::print(" byte6,7,8:");
+			console::printHex(protocol5_packet.byte6,2);
+			console::printHex(protocol5_packet.byte7,2);
+			console::printHex(protocol5_packet.byte8,2);
+			console::println("]");
+		}
 	}
 }
 

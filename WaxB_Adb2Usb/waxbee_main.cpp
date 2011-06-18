@@ -45,6 +45,7 @@
 #include "serial.h"
 #include "pen_events.h"
 #include "isdv4_serial.h"
+#include "protocol4_serial.h"
 
 #include "pen_events.h"
 
@@ -156,6 +157,9 @@ int main(void)
 		{
 			case EXTDATA_SLAVE_PROTOCOL_WACOM_ISDV4:
 				isdv4_serial::init();
+				break;
+			case EXTDATA_SLAVE_PROTOCOL_WACOM_PROTOCOL4:
+				protocol4_serial::init();
 				break;
 			case EXTDATA_SLAVE_PROTOCOL_WACOM_PROTOCOL5:
 //				protocol5_serial::init();
