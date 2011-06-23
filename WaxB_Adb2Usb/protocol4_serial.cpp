@@ -21,12 +21,12 @@
 #define WACOM_PKGLEN_PROTOCOL4 	 	7
 #define WACOM_PKGLEN_PROTOCOL4_TILT	9
 
-#define TABLET_TYPE_UNSUPPORTED	0	// unknown/undefined serial tablet
+#define TABLET_TYPE_UNSUPPORTED	0	// unknown/undefined protocol 4 serial tablet
 #define TABLET_TYPE_ULTRAPAD	1  	// UD-*
-//#define TABLET_TYPE_INTUOS	2	// GD-* // not supported yet
-//#define TABLET_TYPE_INTUOS2	3	// XD-* // not supported yet
+					// Note: other tablets with Protocol 4 includes:  PL-*,ET-*,CT-*,KT-*
 
-#define ROM_VERSION_UNSUPPORTED	0	// unknown/undefined/V1.2 or earlier
+#define ROM_VERSION_UNSUPPORTED	0	// unknown/undefined/V1.1 or earlier
+#define ROM_VERSION_1_2		2  	// seen a UD-1218-R version 1.2
 #define ROM_VERSION_1_3		3  	//
 #define ROM_VERSION_1_4		4  	//
 #define ROM_VERSION_1_5		5 	// tested with V1.5-4
@@ -36,7 +36,7 @@ namespace protocol4_serial
 	enum protocol4ControllerState
 	{
 		initial,	//
-		modelversion,	// "~#GD-0912-R00,V2.0-4\r"
+		modelversion,	// "~#UD-1212-R V1.5-4\r"
 		packet
 	};
 
@@ -80,7 +80,6 @@ namespace protocol4_serial
 		// For now, only supports this "rigid" format:
 		//
 		// "~#UD-1212-R00 V1.5-4" (ends with /r)
-		// "~#GD-0912-R00,V2.0-2" (ends with /r)
 
 
 		if(buffer[2] == 'U')
@@ -97,7 +96,9 @@ namespace protocol4_serial
 			tabletType = TABLET_TYPE_UNSUPPORTED;
 		}
 
-		if(buffer[17] == '3')
+		if(buffer[17] == '2')
+			romVersion = ROM_VERSION_1_2;
+		else if(buffer[17] == '3')
 			romVersion = ROM_VERSION_1_3;
 		else if(buffer[17] == '4')
 			romVersion = ROM_VERSION_1_4;
@@ -168,7 +169,7 @@ namespace protocol4_serial
 		 * 1  8 bits
 		 * 0  1 stop bit
 		 *
-		 * 00 no CTS/DTR check (thus may not need to ground those pins, but it is "better" not to let input pins floating.
+		 * 00 no CTS/DTR check (thus may not need to ground those pins, but it is "better" not to let input pins floating anyways.)
 		 * 00 suppressed
 		 * 0  binary output format
 		 * 0  absolute mode
@@ -299,11 +300,11 @@ namespace protocol4_serial
 							(((uint16_t) buffer[4]        ) << 7) |
 							(((uint16_t)(buffer[3] & 0x3) ) << 14);
 
-					console::print("...x=");
-					console::printNumber(penEvent.x);
-					console::print("y=");
-					console::printNumber(penEvent.y);
-					console::println();
+//					console::print("...x=");
+//					console::printNumber(penEvent.x);
+//					console::print("y=");
+//					console::printNumber(penEvent.y);
+
 
 					/* pressure */
 
@@ -313,58 +314,62 @@ namespace protocol4_serial
 					penEvent.pressure |= (buffer[6] & 0x40) ? 0 : 0x80;
 
 					penEvent.is_mouse = buffer[0] & 0x20 ? 0 : 1;  // == !stylus
-					penEvent.eraser = (buffer[3] & 0x20) ? 1 : 0;
 
-
-/*					if(buffer[6] & 0x40)
-						penEvent.pressure += 128;
-*/
 					/* buttons */
-//					uint8_t buttons = (buffer[0] & 0x07);
+					uint8_t buttons = (buffer[3] >> 3) & 0x0F;
 
-//					console::print(" - buttons: 0x");
-//					console::printHex(buttons,1);
+					console::print(" - buttons: 0x");
+					console::printHex(buttons,1);
 
-					/* check which device has been reported */
-//					bool curEvent_eraser = (buffer[0] & 4)? 1:0;
+					/* check which device (pen/eraser) is being reported */
+					bool curEvent_eraser = (buffer[3] & 0x20);
 
 					// detect tool state
-//					if(!in_proximity)
-//					{
-//						if(penEvent.proximity)
-//						{
-//							// entering proximity
-//							in_proximity = true;
-//
-//							if(curEvent_eraser)
-//							{
-//								eraser_mode = true;
-//							}
-//							else
-//							{
-//								eraser_mode = false;
-//							}
-//
-///*							console::print(" ->Entering proximity. Mode=");
-//							if(eraser_mode)
-//								console::println("Eraser");
-//							else
-//								console::println("Pen");
-//*/						}
-//					}
-//					else if(!penEvent.proximity)
-//					{
-///*						console::println(" ->Exiting proximity.");
-//*/						resetToolState();
-//					}
-//
-//					penEvent.eraser = eraser_mode;
+					if(!in_proximity)
+					{
+						if(penEvent.proximity)
+						{
+							// entering proximity
+							in_proximity = true;
 
-					//TODO :  how to map the following???
-					penEvent.touch = 0;
-					penEvent.button0 = 0;
-					penEvent.button1 = 0;
-					penEvent.is_mouse = 0;
+							if(curEvent_eraser)
+							{
+								eraser_mode = true;
+							}
+							else
+							{
+								eraser_mode = false;
+							}
+
+							console::print(" - Enter prox =");
+							if(eraser_mode)
+								console::println("Eraser");
+							else
+								console::println("Pen");
+						}
+					}
+					else if(!penEvent.proximity)
+					{
+						console::print(" - Exit prox");
+						resetToolState();
+					}
+
+					penEvent.eraser = eraser_mode;
+
+					if(eraser_mode)
+					{
+						// no sideswitches with eraser
+						penEvent.button0 = 0;
+						penEvent.button1 = 0;
+					}
+					else
+					{
+						penEvent.button0 = (buffer[3] & 0x10) ? 1:0;  // sideswitch 1
+						penEvent.button1 = (buffer[3] & 0x20) ? 1:0;  // sideswitch 2
+					}
+
+					// tip
+					penEvent.touch = (buffer[3] & 0x08) ? 1:0; // shouldn't we look at the pressure instead?
 
 					// TODO: understand the extra logic from the linux driver (wacserial.c)
 
@@ -386,6 +391,8 @@ namespace protocol4_serial
 					}
 
 					penEvent.rotation_z = 0;
+
+					console::println();
 
 					Pen::send_pen_event(penEvent);
 				}
