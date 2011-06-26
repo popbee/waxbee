@@ -195,7 +195,7 @@ namespace protocol4_serial
 		 * 00  - max pen reporting speed
 		 * 1270,1270 - dpi settings
 		 */
-		serial::sendString("~*F203C810,002,00,1270,1270\r");
+		serial::sendString("~*F203C810,002,00,2540,2540\r");
 
 		if(romVersion >= ROM_VERSION_1_4)
 			packet_len = WACOM_PKGLEN_PROTOCOL4_TILT;
@@ -376,10 +376,6 @@ namespace protocol4_serial
 					/* check on previous proximity */
 					/* we might have been fooled by tip and second
 					 * sideswitch when it came into prox */
-
-					/* don't send button 3 event for eraser
-					 * button 1 event will be sent by testing pressure level
-					 */
 
 					/* tilt mode */
 					if (packet_len == WACOM_PKGLEN_PROTOCOL4_TILT)
