@@ -123,7 +123,7 @@ public class MainApplication extends JFrame
 		p.add(itsMonitorsCombo, "wmin 40,grow 0,wrap");
 
 		setIconImage(getImage("appicon.png"));
-		setTitle("Waxbee Config");
+		setTitle("Waxbee Config 0.4");
 
 		try
 		{
@@ -248,6 +248,7 @@ public class MainApplication extends JFrame
 		submenu.add(mi = new JRadioButtonMenuItem("Upside Down"));
 		submenu.add(mi = new JRadioButtonMenuItem("Rotated Left"));
 		menu.add(mi = new JMenuItem("Setup active area..."));
+		mi.setEnabled(false);
 		mi.addActionListener(new ActionListener()
 		{
 			@Override
@@ -267,7 +268,7 @@ public class MainApplication extends JFrame
 			}
 		});
 
-		menu.add(mi = new JMenuItem("Test Swing Painting..."));
+/*		menu.add(mi = new JMenuItem("Test Swing Painting..."));
 		mi.addActionListener(new ActionListener()
 		{
 			@Override
@@ -286,7 +287,7 @@ public class MainApplication extends JFrame
 				}
 			}
 		});
-		
+*/		
 		
 		menu.add(mi = new JMenuItem("Map unreachable edges..."));
 		mi.setEnabled(false);
