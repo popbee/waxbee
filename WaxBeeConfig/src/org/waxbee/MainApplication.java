@@ -123,7 +123,7 @@ public class MainApplication extends JFrame
 		p.add(itsMonitorsCombo, "wmin 40,grow 0,wrap");
 
 		setIconImage(getImage("appicon.png"));
-		setTitle("Waxbee Config 0.4");
+		setTitle("Waxbee Config 0.6");
 
 		try
 		{
@@ -339,7 +339,7 @@ public class MainApplication extends JFrame
 					outputImage.generateIntelHex(out);
 					out.close();
 
-					JOptionPane.showMessageDialog(MainApplication.this, "Hex file written succesfully.\n\nDetailed Report :\n" + report.toString());
+					JOptionPane.showMessageDialog(MainApplication.this, "Hex file written successfully.\n\nDetailed Report :\n" + report.toString());
 				}
 				catch (Exception ex)
 				{
@@ -351,6 +351,7 @@ public class MainApplication extends JFrame
 		submenu.add(mi = new JMenuItem("Raw HID sniffer..."));
 		mi.setEnabled(false);
 		submenu.add(mi = new JMenuItem("Debug Console (HID Listen)..."));
+		mi.setEnabled(false);
 		mi.addActionListener(new ActionListener()
 		{
 			@Override
