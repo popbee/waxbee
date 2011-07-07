@@ -278,7 +278,6 @@ namespace protocol4_serial
 			{
 				if(data & 0x80)
 				{
-					LED_ON;
 //					console::println();
 					console::print("*");
 
@@ -409,7 +408,6 @@ namespace protocol4_serial
 //					console::println();
 
 					Pen::send_pen_event(penEvent);
-					LED_OFF;
 				}
 				break;
 			}
