@@ -218,7 +218,7 @@ namespace WacomUsb
 
 				protocol5_packet.distance = 0x0D;  // we must be getting this value from ADB or Serial tablets, no??
 
-				if(console::console_enabled)
+/*				if(console::console_enabled)
 				{
 					console::print("[USB Packet - prox:");
 					console::printbit(protocol5_packet.proximity);
@@ -239,7 +239,7 @@ namespace WacomUsb
 					console::printHex(protocol5_packet.byte8,2);
 					console::println("]");
 				}
-			}
+*/			}
 			else
 			{
 				currentlyInRange = true;

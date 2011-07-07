@@ -63,6 +63,8 @@ namespace isdv4_serial
 			{
 				if(data & 0x80)
 				{
+					console::println();
+
 /*					if(datalen > 0)
 						console::println("(?!)");
 */					datalen = 0;

@@ -29,7 +29,7 @@ namespace Pen
 		int16_t tilt_x; // this is signed
 		int16_t tilt_y; // this is signed
 
-		int16_t rotation_z;
+		int16_t rotation_z; // this is signed
 	};
 
 	void init();

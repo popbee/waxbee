@@ -16,6 +16,8 @@
 #include "wacom_usb.h"
 #include <util/delay.h>
 
+#include "led.h"
+
 #include <stdio.h>
 
 #define WACOM_PKGLEN_PROTOCOL4 	 	7
@@ -63,6 +65,20 @@ namespace protocol4_serial
 
 	void initialState()
 	{
+		// attempt to reset the board to 9600 bauds
+
+		serial::setNormalPortSpeed(); // 19200 baud
+		serial::sendString("\r\r\r\r#\r"); // send a few \r to make sure we are in sync
+
+		// 10 ms delay
+		_delay_ms(10);
+
+		serial::setInitialPortSpeed(); // 9600 baud
+		serial::sendString("\r\r\r\r#\r"); // send a few \r to make sure we are in sync
+
+		// 10 ms delay
+		_delay_ms(10);
+
 		itsCurState = modelversion;
 		serial::sendString("\r\r\r\r~#"); // send a few \r to make sure we are in sync
 		datalen = 0;
@@ -193,7 +209,7 @@ namespace protocol4_serial
 		 *
 		 * 002 - increment value (IN)
 		 * 00  - max pen reporting speed
-		 * 1270,1270 - dpi settings
+		 * 2540,2540 - dpi settings
 		 */
 		serial::sendString("~*F203C810,002,00,2540,2540\r");
 
@@ -262,7 +278,8 @@ namespace protocol4_serial
 			{
 				if(data & 0x80)
 				{
-					console::println();
+					LED_ON;
+//					console::println();
 					console::print("*");
 
 					if(datalen > 0)
@@ -288,7 +305,7 @@ namespace protocol4_serial
 					// event consumed
 					datalen = 0;
 
-					console::println();
+//					console::println();
 
 					penEvent.proximity = (buffer[0] & 0x40)?1:0;
 
@@ -316,10 +333,9 @@ namespace protocol4_serial
 					penEvent.is_mouse = buffer[0] & 0x20 ? 0 : 1;  // == !stylus
 
 					/* buttons */
-					uint8_t buttons = (buffer[3] >> 3) & 0x0F;
-
-					console::print(" - buttons: 0x");
-					console::printHex(buttons,1);
+//					uint8_t buttons = (buffer[3] >> 3) & 0x0F;
+//					console::print(" - buttons: 0x");
+//					console::printHex(buttons,1);
 
 					/* check which device (pen/eraser) is being reported */
 					bool curEvent_eraser = (buffer[3] & 0x20);
@@ -346,11 +362,13 @@ namespace protocol4_serial
 								console::println("Eraser");
 							else
 								console::println("Pen");
+							console::println();
 						}
 					}
 					else if(!penEvent.proximity)
 					{
 						console::print(" - Exit prox");
+						console::println();
 						resetToolState();
 					}
 
@@ -388,9 +406,10 @@ namespace protocol4_serial
 
 					penEvent.rotation_z = 0;
 
-					console::println();
+//					console::println();
 
 					Pen::send_pen_event(penEvent);
+					LED_OFF;
 				}
 				break;
 			}
@@ -404,7 +423,6 @@ namespace protocol4_serial
 		resetToolState();
 
 		serial::init(onSerialByteReceived);
-		serial::setInitialPortSpeed();
 
 		initialState();
 	}
