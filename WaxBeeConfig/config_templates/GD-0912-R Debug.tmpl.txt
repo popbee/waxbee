@@ -2,7 +2,7 @@
 # WaxBee configuration
 #------------------------------------------------------------------------------
 NAME = "GD-0912-R Debug"
-DESCRIPTION = "Interface an Intuos (GD-0912-R) for Debugging"
+DESCRIPTION = "Interface an Intuos 9x12 (GD-0912-R) for Debugging"
 SLAVE_TABLET_X_MAX = 30480
 SLAVE_TABLET_Y_MAX = 24060
 USB_TABLET_X_MAX = 16704

@@ -2,7 +2,7 @@
 # WaxBee configuration
 #------------------------------------------------------------------------------
 NAME = "ADB UD-0608-A Debug (Intuos2 12x18)"
-DESCRIPTION = "Interface an ADB-based Digitizer II (Ultrapad) UD-0608-A for Debugging (to an Intuos2 12x18)"
+DESCRIPTION = "Interface an ADB-based Digitizer II 6x8 (Ultrapad) UD-0608-A for Debugging (to an Intuos2 12x18)"
 SLAVE_TABLET_X_MAX = 20480
 SLAVE_TABLET_Y_MAX = 15360
 USB_TABLET_X_MAX = 45720
