@@ -291,8 +291,20 @@ static inline bool handleStandardEndpoint0()
 				case 0x22:  // ----- HID REPORT DESCRIPTOR -----
 					if(req.value_low != 0) return USBREQ_STALL;
 
-					desc_addr = extdata_getAddress(EXTDATA_USB_HIDREPORTDESC);
-					desc_length = extdata_getLength8(EXTDATA_USB_HIDREPORTDESC);
+					if(req.index_low == 0)
+					{
+						desc_addr = extdata_getAddress(EXTDATA_USB_HIDREPORTDESC);
+						desc_length = extdata_getLength8(EXTDATA_USB_HIDREPORTDESC);
+					}
+					else if(req.index_low == 1)
+					{
+						desc_addr = extdata_getAddress(EXTDATA_USB_HIDREPORTDESC2);
+						desc_length = extdata_getLength8(EXTDATA_USB_HIDREPORTDESC2);
+					}
+					else
+					{
+						return USBREQ_STALL;
+					}
 
 					break;
 				case 0x03:  // ----- STRING DESCRIPTOR -----

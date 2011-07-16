@@ -86,8 +86,6 @@ namespace isdv4_serial
 					// event consumed
 					datalen = 0;
 
-					console::println();
-
 					penEvent.proximity = (buffer[0] & 0x20)?1:0;
 
 					penEvent.x =    (((uint16_t)(buffer[6] & 0x60)) >> 5) |
@@ -102,11 +100,11 @@ namespace isdv4_serial
 					penEvent.pressure = (((uint16_t)(buffer[6] & 0x07)) << 7) |
 									 buffer[5];
 
-					/* buttons */
-					uint8_t buttons = (buffer[0] & 0x07);
+					// not sure if this bit is looked at anyways
+					penEvent.touch = penEvent.pressure > 10;
 
-//					console::print(" - buttons: 0x");
-//					console::printHex(buttons,1);
+					penEvent.button0 = buffer[0] & 0x02;
+					penEvent.button1 = buffer[0] & 0x04;
 
 					/* check which device has been reported */
 					bool curEvent_eraser = (buffer[0] & 4)? 1:0;
@@ -143,10 +141,13 @@ namespace isdv4_serial
 
 					penEvent.eraser = eraser_mode;
 
-					//TODO :  how to map the following???
-					penEvent.touch = 0;
-					penEvent.button0 = 0;
-					penEvent.button1 = 0;
+					if(eraser_mode)
+					{
+						// no buttons with eraser
+						penEvent.button0 = 0;
+						penEvent.button1 = 0;
+					}
+
 					penEvent.is_mouse = 0;
 
 					// TODO: understand the extra logic from the linux driver (wcmISDV4.c)
@@ -155,11 +156,7 @@ namespace isdv4_serial
 					/* we might have been fooled by tip and second
 					 * sideswitch when it came into prox */
 
-					/* don't send button 3 event for eraser
-					 * button 1 event will be sent by testing pressure level
-					 */
-
-					// tilt data?
+					// no tilt data?
 					penEvent.tilt_x = 0;
 					penEvent.tilt_y = 0;
 
