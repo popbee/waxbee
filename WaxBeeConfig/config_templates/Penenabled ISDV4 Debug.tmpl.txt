@@ -90,6 +90,9 @@ USB_HIDREPORTDESC = @[
 0xc0		# end collection
 ]
 
+USB_HIDREPORTDESC2 = @[
+]
+
 USB_STRING1 = "WaxBee"
 USB_STRING2 = "WaxBee Debugger"
 USB_STRING3 = ""
@@ -98,6 +101,7 @@ USB_STRING5 = ""
 
 # Valid choices for USB_PROTOCOL:
 # 4: WACOM_PROTOCOL4
+# 5: WACOM_PROTOCOL5
 
 USB_PROTOCOL = 4
 USB_ENDPOINT0SIZE = 32
@@ -116,8 +120,10 @@ USB_PRESSURE_MAX = 511
 # Valid choices for SLAVE_PROTOCOL:
 # 1: WACOM_ADB
 # 2: WACOM_ISDV4
+# 3: WACOM_PROTOCOL5
+# 4: WACOM_PROTOCOL4
 
-SLAVE_PROTOCOL = 1
+SLAVE_PROTOCOL = 2
 
 # Orientation affect X,Y coordinates but should also
 # affect "tilt" and "rotation" values accordingly.
@@ -140,7 +146,7 @@ SLAVE_X_ANCHOR_MAX = 0
 SLAVE_Y_ANCHOR_MAX = 0
 SLAVE_PRESSURE_MAX = 255
 
-# 16Mhz is not recommended with 3.3v supply. The slower, the less power it takes.#
+# 16Mhz is not recommended with 3.3v supply.#
 
 # Valid choices for CPU_CORE_CLOCK:
 # 0: F_16MHZ
