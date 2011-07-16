@@ -14,6 +14,7 @@
 #include "console.h"
 #include "pen_events.h"
 #include "wacom_usb.h"
+#include <util/delay.h>
 
 #define WACOM_PKGLEN_TPC 	 9
 #define WACOM_PKGLEN_TPCCTL     11
@@ -22,11 +23,11 @@ namespace isdv4_serial
 {
 	enum isdv4ControllerState
 	{
-		unknown,
-		stop,  		// "0" // wait ~250ms
-		query,		// "*"
+		halted,
+		  		// "0" // wait ~250ms
+				// "*"
 		query_packet,
-		start, 	   	// "1"
+		 	   	// "1"
 		packet
 	};
 
@@ -47,23 +48,87 @@ namespace isdv4_serial
 		eraser_mode = false;
 	}
 
+	void start_packets()
+	{
+		datalen = 0;
+		serial::sendString("\r\r1\r"); // send a few \r to make sure we are in sync
+		itsCurIsdv4State = packet;
+	}
+
 	void onSerialByteReceived(uint8_t data)
 	{
+		if(data & 0x80)
+		{
+			console::println();
+		}
+
 		console::print(' ');
 		console::printHex(data, 2);
 
 		switch(itsCurIsdv4State)
 		{
-			case unknown:
-			case stop:
-			case query:
+			case halted:
+				return;
+
 			case query_packet:
-			case start:
+				if(datalen < WACOM_PKGLEN_TPCCTL)
+				{
+					buffer[datalen] = data;
+					datalen++;
+				}
+
+				if(datalen == WACOM_PKGLEN_TPCCTL)
+				{
+					uint16_t maxZ = ( buffer[5] | ((buffer[6] & 0x07) << 7) );
+					uint16_t maxX = ( (buffer[1] << 9) |
+						(buffer[2] << 2) | ( (buffer[6] & 0x60) >> 5) );
+					uint16_t maxY = ( (buffer[3] << 9) | (buffer[4] << 2 )
+						| ( (buffer[6] & 0x18) >> 3) );
+
+					uint16_t maxtiltX = 0;
+					uint16_t maxtiltY = 0;
+					bool hasTilt = false;
+
+
+					if (buffer[7] && buffer[8])
+					{
+						maxtiltX = buffer[7] + 1;
+						maxtiltY = buffer[8] + 1;
+						hasTilt = true;
+					}
+
+					uint16_t version = ( buffer[10] | (buffer[9] << 7) );
+
+					console::print("\nPressure Max=");
+					console::printNumber(maxZ);
+					console::print(", X Max=");
+					console::printNumber(maxX);
+					console::print(", Y Max=");
+					console::printNumber(maxY);
+
+					if(hasTilt)
+					{
+						console::print(", Has Tilt: Tilt X Max=");
+						console::printNumber(maxtiltX);
+						console::print(", Tilt Y Max=");
+						console::printNumber(maxtiltY);
+					}
+					else
+						console::print(", No Tilt");
+
+					console::print(", Version=");
+					console::printNumber(version);
+					console::println("");
+
+					start_packets();
+				}
+
+				break;
 			case packet:
 			{
 				if(data & 0x80)
 				{
-					console::println();
+//					console::println();
 
 /*					if(datalen > 0)
 						console::println("(?!)");
@@ -177,5 +242,22 @@ namespace isdv4_serial
 
 		serial::init(onSerialByteReceived);
 		serial::setNormalPortSpeed();
+
+		itsCurIsdv4State = halted;
+
+		if(console::console_enabled)
+		{
+			serial::sendString("\r\r0\r"); // send a few \r to make sure we are in sync
+			_delay_ms(250);
+			serial::flush();
+			datalen = 0;
+			serial::sendString("*");
+			itsCurIsdv4State = query_packet;
+			console::println("Sending *...");
+		}
+		else
+		{
+			start_packets();
+		}
 	}
 }
