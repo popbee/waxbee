@@ -3,10 +3,10 @@
 
 	constants:
 	{
-		VERSION : 3,
+		VERSION : 4,
 		MAIN_TABLE_ADDRESS_PLACEHOLDER:	0x0123,
 		USB_STRING_COUNT: 5,
-		COUNT: 39
+		COUNT: 41
 	},
 
 	items: 
@@ -99,38 +99,44 @@
 			name: 'USB HID Report Descriptor'
 		},
 
+		USB_HIDREPORTDESC2: {
+			index:7,
+			type:binary,
+			name: 'Second USB HID Report Descriptor'
+		},
+
 		USB_STRING1: {
-			index: 7,
+			index: 8,
 			type:string,
 			name:'USB Descriptor String index 01'
 		},
 
 		USB_STRING2: {
-			index: 8,
+			index: 9,
 			type:string,
 			name:'USB Descriptor String index 02'
 		},
 		
 		USB_STRING3: {
-			index: 9,
+			index: 10,
 			type:string,
 			name:'USB Descriptor String index 03'
 		},
 		
 		USB_STRING4: {
-			index: 10,
+			index: 11,
 			type:string,
 			name:'USB Descriptor String index 04'
 		},
 		
 		USB_STRING5: {
-			index: 11,
+			index: 12,
 			type:string,
 			name:'USB Descriptor String index 05'
 		},
 			
 		USB_PROTOCOL: {
-			index:12,
+			index:13,
 			type:enum,
 			name:'USB Protocol',
 			enum: {
@@ -143,81 +149,91 @@
 				{
 					value:5,
 					name:'Wacom Protocol 5'
+				},
+				WACOM_BAMBOO:
+				{
+					value:6,
+					name:'Wacom Bamboo'
 				}
 			}
 		},
 
 		USB_ENDPOINT0SIZE: {
-			index:13,
+			index:14,
 			name:'USB Endpoint 0 Buffer size'
 		},
 		
 		USB_ENDPOINT1SIZE: {
-			index:14,
+			index:15,
 			name:'USB Endpoint 1 Buffer size'
 		},
 		
+		USB_ENDPOINT2SIZE: {
+			index:16,
+			name:'USB Endpoint 2 Buffer size'
+		},
+		
 		USB_ENDPOINT3SIZE: {
-			index:15,
+			index:17,
 			name:'USB Endpoint 3 Buffer size'
 		},
 		
 		USB_X_MIN: {
-			index:16,
+			index:18,
 			type:uint16,
 			name:'USB Minimum X position (left)'
 		},
 		
 		USB_Y_MIN: {
-			index:17,
+			index:19,
 			type:uint16,
 			name:'USB Minimum Y position (top)'
 		},
 		
 		USB_X_MAX: {
-			index:18,
+			index:20,
 			type:uint16,
 			name:'USB Maximum X position (right)'
 		},
 		
 		USB_Y_MAX: {
-			index:19,
+			index:21,
 			type:uint16,
 			name:'USB Maximum Y position (bottom)'
 		},
 		
 		USB_X_ANCHOR_MIN: {
-			index:20,
+			index:22,
 			type:uint16,
 			name:'USB Minimum X anchor position (left) (0 to disable)'
 		},
 		
 		USB_Y_ANCHOR_MIN: {
-			index:21,
+			index:23,
 			type:uint16,
 			name:'USB Minimum Y anchor position (top) (0 to disable)'
 		},
 		
 		USB_X_ANCHOR_MAX: {
-			index:22,
+			index:24,
 			type:uint16,
 			name:'USB Maximum X anchor position (right) (0 to disable)'
 		},
 		
 		USB_Y_ANCHOR_MAX: {
-			index:23,
+			index:25,
 			type:uint16,
 			name:'USB Maximum Y anchor position (bottom) (0 to disable)'
 		},
 
 		USB_PRESSURE_MAX: {
-			index:24,
+			index:26,
 			type:uint16,
 			name:'USB Stylus Pressure maximum'
 		},
 
 		SLAVE_PROTOCOL: {
-			index:25,
+			index:27,
 			type:enum,
 			name:'Slave (ADB/Serial side) Protocol',
 			enum: {
@@ -245,7 +261,7 @@
 		},
 
 		SLAVE_ORIENTATION: {
-			index:26,
+			index:28,
 			type:enum,
 			name: 'Slave Tablet Orientation',
 			comment: 'Orientation affect X,Y coordinates but should also\naffect "tilt" and "rotation" values accordingly.\nNOTE: Data is rotated before MIN/MAX/ANCHOR transformation',
@@ -274,61 +290,61 @@
 		},
 
 		SLAVE_X_MIN: {
-			index:27,
+			index:29,
 			type:uint16,
 			name:'Slave Minimum X position (left)'
 		},
 		
 		SLAVE_Y_MIN: {
-			index:28,
+			index:30,
 			type:uint16,
 			name:'Slave Minimum Y position (top)'
 		},
 		
 		SLAVE_X_MAX: {
-			index:29,
+			index:31,
 			type:uint16,
 			name:'Slave Maximum X position (right)'
 		},
 		
 		SLAVE_Y_MAX: {
-			index:30,
+			index:32,
 			type:uint16,
 			name:'Slave Maximum Y position (bottom)'
 		},
 		
 		SLAVE_X_ANCHOR_MIN: {
-			index:31,
+			index:33,
 			type:uint16,
 			name:'Slave Minimum X anchor position (left) (0 to disable)'
 		},
 		
 		SLAVE_Y_ANCHOR_MIN: {
-			index:32,
+			index:34,
 			type:uint16,
 			name:'Slave Minimum Y anchor position (top) (0 to disable)'
 		},
 		
 		SLAVE_X_ANCHOR_MAX: {
-			index:33,
+			index:35,
 			type:uint16,
 			name:'Slave Maximum X anchor position (right) (0 to disable)'
 		},
 		
 		SLAVE_Y_ANCHOR_MAX: {
-			index:34,
+			index:36,
 			type:uint16,
 			name:'Slave Maximum Y anchor position (bottom) (0 to disable)'
 		},
 
 		SLAVE_PRESSURE_MAX: {
-			index:35,
+			index:37,
 			type:uint16,
 			name:'Slave Stylus Pressure maximum'
 		},
 
 		CPU_CORE_CLOCK: {
-			index:36,
+			index:38,
 			type:enum,
 			name:'CPU core clock',
 			comment:'16Mhz is not recommended with 3.3v supply.',
@@ -347,7 +363,7 @@
 		},
 		
 		INITIAL_SERIAL_PORT_SPEED: {
-			index:37,
+			index:39,
 			type:enum,
 			name:'Initial Serial Port Speed',
 			comment:'Serial port speed at initialization time.',
@@ -371,7 +387,7 @@
 		},
 		
 		SERIAL_PORT_SPEED: {
-			index:38,
+			index:40,
 			type:enum,
 			name:'Serial Port Speed',
 			comment:'Serial port speed during normal operation.',
