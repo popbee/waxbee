@@ -110,6 +110,106 @@ namespace WacomUsb
 	}
 
 	//-----------------------------------------------------------------
+	// USB Bamboo Pen Packet
+	//-----------------------------------------------------------------
+
+	struct bamboo_struct
+	{
+		union
+		{
+			uint8_t buffer[9];
+			struct
+			{
+				uint8_t hid_identifier; // 0x02
+				struct
+				{
+					unsigned touch:1;   // bit 0 - pen touches the tablet
+					unsigned button0:1; // bit 1 - first button on the pen
+					unsigned button1:1; // bit 2 - second button on the pen
+					unsigned eraser:1;  // bit 3 - eraser tool
+					unsigned inrange:1; // bit 4 - (?)like 'proximity' but for a greater distance.
+							    // 		mouse is not moving in Windows when in that range
+							    // 		but x/y coordinates are being sent.
+					unsigned proximity:1;// bit 5 - proximity(?) pen in close proximity, moves the mouse
+					unsigned notsure:1; // bit 6 - ??
+					unsigned outofprox:1;// bit 7 - appears to be the only thing set with everything else is zero?
+				};
+				uint16_t x;
+				uint16_t y;
+				uint16_t pressure;
+				uint8_t distance;
+			};
+		};
+	} bamboo_packet;
+
+	void send_bamboo_packet(Pen::PenEvent& penEvent)
+	{
+		bamboo_packet.hid_identifier = 0x02;
+
+		bamboo_packet.notsure = 0;
+
+//		bamboo_packet.is_mouse = penEvent.is_mouse; // no mouse with bamboo(?)
+		bamboo_packet.inrange = penEvent.proximity;
+
+		if(bamboo_packet.inrange)
+		{
+			bamboo_packet.x = Pen::compute_x_position(penEvent.x);
+			bamboo_packet.y = Pen::compute_y_position(penEvent.y);
+			bamboo_packet.pressure = Pen::compute_pressure(penEvent.pressure);
+			bamboo_packet.proximity = penEvent.proximity;
+			bamboo_packet.touch = penEvent.touch;
+			bamboo_packet.eraser = penEvent.eraser;
+			bamboo_packet.button0 = penEvent.button0;
+			bamboo_packet.button1 = penEvent.button1;
+			bamboo_packet.distance = 0x1A; // not sure if that value is used(?)
+			bamboo_packet.outofprox = 0;
+		}
+		else
+		{
+			bamboo_packet.x = 0;
+			bamboo_packet.y = 0;
+			bamboo_packet.proximity = 0;
+			bamboo_packet.pressure = 0;
+			bamboo_packet.distance = 0;
+			bamboo_packet.touch = 0;
+			bamboo_packet.eraser = 0;
+			bamboo_packet.button0 = 0;
+			bamboo_packet.button1 = 0;
+			bamboo_packet.outofprox = 1;
+		}
+
+		if(console::console_enabled)
+		{
+			console::print("[USB Packet - prox:");
+			console::printbit(bamboo_packet.proximity);
+			console::print(" outofprox:");
+			console::printbit(bamboo_packet.outofprox);
+			console::print(" range:");
+			console::printbit(bamboo_packet.inrange);
+			console::print(" touc:");
+			console::printbit(bamboo_packet.touch);
+			console::print(" era:");
+			console::printbit(bamboo_packet.eraser);
+			console::print(" b0:");
+			console::printbit(bamboo_packet.button0);
+			console::print(" b1:");
+			console::printbit(bamboo_packet.button1);
+			console::print(" x=");
+			console::printNumber(bamboo_packet.x);
+			console::print(", y=");
+			console::printNumber(bamboo_packet.y);
+			console::print(", pressure=");
+			console::printNumber(bamboo_packet.pressure);
+			console::print(", distance=");
+			console::printNumber(bamboo_packet.distance);
+			console::println("]");
+		}
+
+		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
+			usb_rawhid_send(bamboo_packet.buffer, 9, RAWHID_TX_ENDPOINT, 50);
+	}
+
+	//-----------------------------------------------------------------
 	// USB Protocol V (5)
 	//
 	// Data gleaned for the Intuos2

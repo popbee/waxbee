@@ -4,7 +4,7 @@
 
 #define EXTDATA_USB_STRING_COUNT 5
 
-#define EXTDATA_COUNT 40
+#define EXTDATA_COUNT 41
 
 #define EXTDATA_VERSION 4
 
@@ -45,20 +45,22 @@
 // EXTDATA_USB_PROTOCOL should contain one of:
 #define EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL5	5	// Wacom Protocol 5
 #define EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL4	4	// Wacom Protocol 4
+#define EXTDATA_USB_PROTOCOL_WACOM_BAMBOO	6	// Wacom Bamboo
 
 #define EXTDATA_USB_ENDPOINT0SIZE	14	// USB Endpoint 0 Buffer size
 #define EXTDATA_USB_ENDPOINT1SIZE	15	// USB Endpoint 1 Buffer size
-#define EXTDATA_USB_ENDPOINT3SIZE	16	// USB Endpoint 3 Buffer size
-#define EXTDATA_USB_X_MIN	17	// uint16 - USB Minimum X position (left)
-#define EXTDATA_USB_Y_MIN	18	// uint16 - USB Minimum Y position (top)
-#define EXTDATA_USB_X_MAX	19	// uint16 - USB Maximum X position (right)
-#define EXTDATA_USB_Y_MAX	20	// uint16 - USB Maximum Y position (bottom)
-#define EXTDATA_USB_X_ANCHOR_MIN	21	// uint16 - USB Minimum X anchor position (left) (0 to disable)
-#define EXTDATA_USB_Y_ANCHOR_MIN	22	// uint16 - USB Minimum Y anchor position (top) (0 to disable)
-#define EXTDATA_USB_X_ANCHOR_MAX	23	// uint16 - USB Maximum X anchor position (right) (0 to disable)
-#define EXTDATA_USB_Y_ANCHOR_MAX	24	// uint16 - USB Maximum Y anchor position (bottom) (0 to disable)
-#define EXTDATA_USB_PRESSURE_MAX	25	// uint16 - USB Stylus Pressure maximum
-#define EXTDATA_SLAVE_PROTOCOL	26	// enum - Slave (ADB/Serial side) Protocol
+#define EXTDATA_USB_ENDPOINT2SIZE	16	// USB Endpoint 2 Buffer size
+#define EXTDATA_USB_ENDPOINT3SIZE	17	// USB Endpoint 3 Buffer size
+#define EXTDATA_USB_X_MIN	18	// uint16 - USB Minimum X position (left)
+#define EXTDATA_USB_Y_MIN	19	// uint16 - USB Minimum Y position (top)
+#define EXTDATA_USB_X_MAX	20	// uint16 - USB Maximum X position (right)
+#define EXTDATA_USB_Y_MAX	21	// uint16 - USB Maximum Y position (bottom)
+#define EXTDATA_USB_X_ANCHOR_MIN	22	// uint16 - USB Minimum X anchor position (left) (0 to disable)
+#define EXTDATA_USB_Y_ANCHOR_MIN	23	// uint16 - USB Minimum Y anchor position (top) (0 to disable)
+#define EXTDATA_USB_X_ANCHOR_MAX	24	// uint16 - USB Maximum X anchor position (right) (0 to disable)
+#define EXTDATA_USB_Y_ANCHOR_MAX	25	// uint16 - USB Maximum Y anchor position (bottom) (0 to disable)
+#define EXTDATA_USB_PRESSURE_MAX	26	// uint16 - USB Stylus Pressure maximum
+#define EXTDATA_SLAVE_PROTOCOL	27	// enum - Slave (ADB/Serial side) Protocol
 
 // EXTDATA_SLAVE_PROTOCOL should contain one of:
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_PROTOCOL5	3	// Wacom Protocol 5
@@ -66,7 +68,7 @@
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_ISDV4	2	// Wacom ISDV4 (Penenabled)
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_ADB	1	// Wacom ADB
 
-#define EXTDATA_SLAVE_ORIENTATION	27	// enum - Slave Tablet Orientation
+#define EXTDATA_SLAVE_ORIENTATION	28	// enum - Slave Tablet Orientation
 
 // EXTDATA_SLAVE_ORIENTATION should contain one of:
 #define EXTDATA_SLAVE_ORIENTATION_ROTATED_LEFT	3	// Rotated Left
@@ -74,29 +76,29 @@
 #define EXTDATA_SLAVE_ORIENTATION_ROTATED_RIGHT	1	// Rotated Right
 #define EXTDATA_SLAVE_ORIENTATION_NORMAL	0	// Standard Orientation
 
-#define EXTDATA_SLAVE_X_MIN	28	// uint16 - Slave Minimum X position (left)
-#define EXTDATA_SLAVE_Y_MIN	29	// uint16 - Slave Minimum Y position (top)
-#define EXTDATA_SLAVE_X_MAX	30	// uint16 - Slave Maximum X position (right)
-#define EXTDATA_SLAVE_Y_MAX	31	// uint16 - Slave Maximum Y position (bottom)
-#define EXTDATA_SLAVE_X_ANCHOR_MIN	32	// uint16 - Slave Minimum X anchor position (left) (0 to disable)
-#define EXTDATA_SLAVE_Y_ANCHOR_MIN	33	// uint16 - Slave Minimum Y anchor position (top) (0 to disable)
-#define EXTDATA_SLAVE_X_ANCHOR_MAX	34	// uint16 - Slave Maximum X anchor position (right) (0 to disable)
-#define EXTDATA_SLAVE_Y_ANCHOR_MAX	35	// uint16 - Slave Maximum Y anchor position (bottom) (0 to disable)
-#define EXTDATA_SLAVE_PRESSURE_MAX	36	// uint16 - Slave Stylus Pressure maximum
-#define EXTDATA_CPU_CORE_CLOCK	37	// enum - CPU core clock
+#define EXTDATA_SLAVE_X_MIN	29	// uint16 - Slave Minimum X position (left)
+#define EXTDATA_SLAVE_Y_MIN	30	// uint16 - Slave Minimum Y position (top)
+#define EXTDATA_SLAVE_X_MAX	31	// uint16 - Slave Maximum X position (right)
+#define EXTDATA_SLAVE_Y_MAX	32	// uint16 - Slave Maximum Y position (bottom)
+#define EXTDATA_SLAVE_X_ANCHOR_MIN	33	// uint16 - Slave Minimum X anchor position (left) (0 to disable)
+#define EXTDATA_SLAVE_Y_ANCHOR_MIN	34	// uint16 - Slave Minimum Y anchor position (top) (0 to disable)
+#define EXTDATA_SLAVE_X_ANCHOR_MAX	35	// uint16 - Slave Maximum X anchor position (right) (0 to disable)
+#define EXTDATA_SLAVE_Y_ANCHOR_MAX	36	// uint16 - Slave Maximum Y anchor position (bottom) (0 to disable)
+#define EXTDATA_SLAVE_PRESSURE_MAX	37	// uint16 - Slave Stylus Pressure maximum
+#define EXTDATA_CPU_CORE_CLOCK	38	// enum - CPU core clock
 
 // EXTDATA_CPU_CORE_CLOCK should contain one of:
 #define EXTDATA_CPU_CORE_CLOCK_F_8MHZ	1	// 8 Mhz - half speed
 #define EXTDATA_CPU_CORE_CLOCK_F_16MHZ	0	// 16 Mhz - full speed
 
-#define EXTDATA_INITIAL_SERIAL_PORT_SPEED	38	// enum - Initial Serial Port Speed
+#define EXTDATA_INITIAL_SERIAL_PORT_SPEED	39	// enum - Initial Serial Port Speed
 
 // EXTDATA_INITIAL_SERIAL_PORT_SPEED should contain one of:
 #define EXTDATA_INITIAL_SERIAL_PORT_SPEED_BAUD_9600	0	// 9600 Baud, N-8-1
 #define EXTDATA_INITIAL_SERIAL_PORT_SPEED_BAUD_38400	2	// 38400 Baud, N-8-1
 #define EXTDATA_INITIAL_SERIAL_PORT_SPEED_BAUD_19200	1	// 19200 Baud, N-8-1
 
-#define EXTDATA_SERIAL_PORT_SPEED	39	// enum - Serial Port Speed
+#define EXTDATA_SERIAL_PORT_SPEED	40	// enum - Serial Port Speed
 
 // EXTDATA_SERIAL_PORT_SPEED should contain one of:
 #define EXTDATA_SERIAL_PORT_SPEED_BAUD_9600	0	// 9600 Baud, N-8-1

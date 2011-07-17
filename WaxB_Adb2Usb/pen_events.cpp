@@ -292,6 +292,9 @@ namespace Pen
 			case EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL4:
 				WacomUsb::send_protocol4_packet(penEvent);
 				break;
+			case EXTDATA_USB_PROTOCOL_WACOM_BAMBOO:
+				WacomUsb::send_bamboo_packet(penEvent);
+				break;
 			case EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL5:
 				WacomUsb::send_protocol5_packet(penEvent);
 				break;

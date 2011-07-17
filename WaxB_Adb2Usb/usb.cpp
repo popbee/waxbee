@@ -102,6 +102,7 @@ void usb_init(void)
 
 	endpointSize[0] = extdata_getValue8(EXTDATA_USB_ENDPOINT0SIZE);
 	endpointSize[1] = extdata_getValue8(EXTDATA_USB_ENDPOINT1SIZE);
+	endpointSize[2] = extdata_getValue8(EXTDATA_USB_ENDPOINT2SIZE);
 	endpointSize[3] = extdata_getValue8(EXTDATA_USB_ENDPOINT3SIZE);
 
 	// enable End-Of-Reset and Start-Of-Frame interrupts
@@ -408,6 +409,18 @@ static inline bool handleStandardEndpoint0()
 				//--------------------
 			}
 
+			if(endpointSize[2] > 0)
+			{
+				//--------------------
+				// Endpoint 2
+				//--------------------
+				UENUM = 2;
+				UECONX = 1;
+				UECFG0X = EP_TYPE_INTERRUPT_IN;
+				UECFG1X = EP_SIZE(endpointSize[2]) | RAWHID_TX_BUFFER;
+				//--------------------
+			}
+
 			if(endpointSize[3] > 0)
 			{
 				//--------------------
@@ -498,7 +511,7 @@ static inline bool handleHidEndpoint0()
 				case 3: // GetReport(3)
 				{
 					// Not sure what is this about.
-					// Graphire3 and Intuos2 returns 0x03 00
+					// Graphire3, Intuos2 and BambooFun returns 0x03 00
 					UEDATX = 0x03;
 					UEDATX = 0x00;
 
@@ -572,7 +585,7 @@ static inline bool handleHidEndpoint0()
 				{
 					case 2:
 					{
-						// The Graphire3 & Intuos2 Wacom driver sends 0x02 0x02 here.
+						// The Graphire3, Intuos2 and Bamboo Wacom driver sends 0x02 0x02 here.
 
 						// I think this to "switch" to the digitizer protocol (Report ID 0x02)
 						// (by default, the Graphire3 sends standard HID Mouse packets)
@@ -580,13 +593,19 @@ static inline bool handleHidEndpoint0()
 					}
 					case 4:
 					{
-						// Intuos2 sends 0x04 0x01 when initializing, dunno what this is about. 
+						// Intuos2 driver sends 0x04 0x01 when initializing, dunno what this is about.
 						// Some feature I suppose.
 						break;
 					}
 					case 9:
 					{
-						// Intuos2 sends 0x09 0x00 when initializing, dunno what this is about. 
+						// Intuos2 driver sends 0x09 0x00 when initializing, dunno what this is about.
+						// Some feature I suppose.
+						break;
+					}
+					case 21:
+					{
+						// Bamboo driver sends 0x21 0x01 when initializing, dunno what this is about.
 						// Some feature I suppose.
 						break;
 					}
