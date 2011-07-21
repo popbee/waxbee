@@ -88,9 +88,13 @@ public class ExtDataEditor extends JDialog
 
 		for(ConfigItem item : itsWaxbeeConfig.getConfigItems())
 		{
-			if(item instanceof ConfigItem.StringItem)
+			if(item instanceof ConfigItem.USBStringItem)
 			{
-				itsConfigItemEditors.add(new ConfigItemExtEditor.StringItem((ConfigItem.StringItem)item));
+				itsConfigItemEditors.add(new ConfigItemExtEditor.USBStringItem((ConfigItem.USBStringItem)item));
+			}
+			else if(item instanceof ConfigItem.Utf8StringItem)
+			{
+				itsConfigItemEditors.add(new ConfigItemExtEditor.Utf8StringItem((ConfigItem.Utf8StringItem)item));
 			}
 			else if(item instanceof ConfigItem.UInt8Item)
 			{

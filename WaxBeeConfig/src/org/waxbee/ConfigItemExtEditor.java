@@ -157,16 +157,46 @@ abstract public class ConfigItemExtEditor
 		}		
 	}
 
-	final public static class StringItem extends ConfigItemExtEditor 
+	final public static class USBStringItem extends ConfigItemExtEditor 
 	{
-		public StringItem(ConfigItem.StringItem item) 
+		public USBStringItem(ConfigItem.USBStringItem item) 
 		{
 			super(item);
 		}
 
-		protected ConfigItem.StringItem getStringItem()
+		protected ConfigItem.USBStringItem getStringItem()
 		{
-			return (ConfigItem.StringItem)itsItem;
+			return (ConfigItem.USBStringItem)itsItem;
+		}
+		
+		private JTextField itsTextField;
+
+		@Override
+		public void addItemEditor(Container p, Dialog parentDialog)
+		{
+			addLabel(p);
+			itsTextField = new JTextField(getStringItem().getValue());
+			
+			p.add(itsTextField, "width 200:200:, wrap");
+			addItemComment(p);
+		}
+		@Override
+		public void saveField() throws Exception
+		{
+			getStringItem().setValue(itsTextField.getText());
+		}
+	}
+
+	final public static class Utf8StringItem extends ConfigItemExtEditor 
+	{
+		public Utf8StringItem(ConfigItem.Utf8StringItem item) 
+		{
+			super(item);
+		}
+
+		protected ConfigItem.Utf8StringItem getStringItem()
+		{
+			return (ConfigItem.Utf8StringItem)itsItem;
 		}
 		
 		private JTextField itsTextField;

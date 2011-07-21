@@ -91,9 +91,30 @@ public class WaxBeeConfigEncoder
 			putUInt16(entryAddress, itsExtDataTableLoc);
 			putUInt16(entryAddress+2, itsWaxBeeConfig.itsConfigItems.size() * 4);
 		}
-		else if(item instanceof ConfigItem.StringItem)
+		else if(item instanceof ConfigItem.USBStringItem)
 		{
-			ConfigItem.StringItem stringItem = (ConfigItem.StringItem)item;
+			ConfigItem.USBStringItem stringItem = (ConfigItem.USBStringItem)item;
+			
+			if(stringItem.getExtDataSize() == 0)
+			{
+				putUInt16(entryAddress, 0);
+				putUInt16(entryAddress+2, 0xFF00);
+			}
+			else
+			{
+				byte[] stringbytes = stringItem.getBytes();
+
+				int chunkLoc = allocChunk(stringbytes.length);
+
+				putUInt16(entryAddress, chunkLoc);
+				putUInt16(entryAddress+2, stringbytes.length);
+
+				itsFirmwareImage.putData(chunkLoc, stringbytes);
+			}
+		}
+		else if(item instanceof ConfigItem.Utf8StringItem)
+		{
+			ConfigItem.Utf8StringItem stringItem = (ConfigItem.Utf8StringItem)item;
 			
 			if(stringItem.getExtDataSize() == 0)
 			{

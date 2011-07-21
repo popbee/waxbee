@@ -196,11 +196,84 @@ abstract public class ConfigItem
 			return itsName + "   (" + itsComment + ")";
 		}
 	}
+
+	/** represents a UTF-8 generic String */
+	final public static class Utf8StringItem extends ConfigItem 
+	{
+		public Utf8StringItem(int extDataIndex, String configId, String name, String itemComment,
+				String value, String valueComment) 
+		{
+			super(extDataIndex, configId, name, itemComment);
+			
+			setValue(value);
+			itsValueComment = valueComment;
+		}
+
+		String itsValue;
+		byte[] itsBytes;
+		String itsValueComment;
+		
+		public String getValue() { return itsValue; }
+		public String getValueComment() { return itsValueComment; }
+		public void setValueComment(String valueComment) { itsValueComment = valueComment; }
+
+		
+		public void setValue(String value)
+		{
+			itsValue = value;
+
+			itsBytes = null;
+		}
+		
+		public byte[] getBytes()
+		{
+			if(itsBytes == null)
+			{
+				byte[] bytes;
+				
+				if(itsValue != null)
+					bytes = itsValue.getBytes(Charset.forName("UTF-8"));
+				else
+					bytes = new byte[0]; // empty string
+	
+				itsBytes = bytes;
+			}
+			
+			return itsBytes;
+		}
+				
+		
+		@Override
+		int getExtDataSize() 
+		{	
+			if(itsValue == null) 
+				return 0;
+			
+			return getBytes().length; 
+		}
+
+		@Override
+		String getType() { return "utf8string"; }
+
+		@Override
+		public void renderData(Appendable out) throws IOException
+		{
+			out.append("\"");
+			if(getValue() != null)
+				out.append(getValue());
+			out.append("\"");
+			if(getValueComment() != null)
+			{
+				out.append("\t\t# ");
+				out.append(getValueComment());
+			}
+		}
+	}
 	
 	/** represents a USB descriptor String */
-	final public static class StringItem extends ConfigItem 
+	final public static class USBStringItem extends ConfigItem 
 	{
-		public StringItem(int extDataIndex, String configId, String name, String itemComment,
+		public USBStringItem(int extDataIndex, String configId, String name, String itemComment,
 				String value, String valueComment) 
 		{
 			super(extDataIndex, configId, name, itemComment);
@@ -262,7 +335,7 @@ abstract public class ConfigItem
 		}
 
 		@Override
-		String getType() { return "string"; }
+		String getType() { return "usbstring"; }
 
 		@Override
 		public void renderData(Appendable out) throws IOException

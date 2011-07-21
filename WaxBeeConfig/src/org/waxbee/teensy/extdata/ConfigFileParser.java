@@ -81,9 +81,9 @@ public class ConfigFileParser
 					if(configItem == null)
 						throw new Exception("Configuration reader: Unrecognized identifier '" + identifier + "' at line " + reader.getLineNumber());
 					
-					if(configItem instanceof ConfigItem.StringItem)
+					if(configItem instanceof ConfigItem.USBStringItem)
 					{
-						ConfigItem.StringItem stringItem = (ConfigItem.StringItem)configItem;
+						ConfigItem.USBStringItem stringItem = (ConfigItem.USBStringItem)configItem;
 						stringItem.setValue(extractString(data, identifier));
 						stringItem.setValueComment(comment);
 					}
