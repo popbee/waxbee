@@ -4,7 +4,7 @@
 
 #define EXTDATA_USB_STRING_COUNT 5
 
-#define EXTDATA_COUNT 41
+#define EXTDATA_COUNT 42
 
 #define EXTDATA_VERSION 4
 
@@ -35,11 +35,11 @@
 #define EXTDATA_USB_CONFIGDESC	5	// binary - USB Configuration Descriptor
 #define EXTDATA_USB_HIDREPORTDESC	6	// binary - USB HID Report Descriptor
 #define EXTDATA_USB_HIDREPORTDESC2	7	// binary - Second USB HID Report Descriptor
-#define EXTDATA_USB_STRING1	8	// string - USB Descriptor String index 01
-#define EXTDATA_USB_STRING2	9	// string - USB Descriptor String index 02
-#define EXTDATA_USB_STRING3	10	// string - USB Descriptor String index 03
-#define EXTDATA_USB_STRING4	11	// string - USB Descriptor String index 04
-#define EXTDATA_USB_STRING5	12	// string - USB Descriptor String index 05
+#define EXTDATA_USB_STRING1	8	// usbstring - USB Descriptor String index 01
+#define EXTDATA_USB_STRING2	9	// usbstring - USB Descriptor String index 02
+#define EXTDATA_USB_STRING3	10	// usbstring - USB Descriptor String index 03
+#define EXTDATA_USB_STRING4	11	// usbstring - USB Descriptor String index 04
+#define EXTDATA_USB_STRING5	12	// usbstring - USB Descriptor String index 05
 #define EXTDATA_USB_PROTOCOL	13	// enum - USB Protocol
 
 // EXTDATA_USB_PROTOCOL should contain one of:
@@ -105,3 +105,4 @@
 #define EXTDATA_SERIAL_PORT_SPEED_BAUD_38400	2	// 38400 Baud, N-8-1
 #define EXTDATA_SERIAL_PORT_SPEED_BAUD_19200	1	// 19200 Baud, N-8-1
 
+#define EXTDATA_GPIO_INIT	41	// utf8string - GPIO Init string

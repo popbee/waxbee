@@ -1,5 +1,3 @@
-
-
 /* This software contains portions from PJRC.COM. The following copyright
  * notice is attached to it:
  *-----------------------------------------------------------------------------
@@ -29,7 +27,6 @@
 #include <math.h>
 #include <avr/io.h>
 
-#include <util/delay.h>
 #include <avr/interrupt.h>
 
 #include "avr_util.h"
@@ -47,19 +44,14 @@
 #include "isdv4_serial.h"
 #include "protocol4_serial.h"
 #include "protocol5_serial.h"
-
+#include "gpioinit.h"
 #include "pen_events.h"
+#include "frequency.h"
 
 #include <avr/pgmspace.h>
 
 #define TIMER0_PRESCALER_DIVIDER	1024
 #define TIMER0_PRESCALER_SETTING	(BITV(CS10, 1) | BITV(CS11, 0) | BITV(CS12, 1))
-
-#define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
-
-uint8_t buffer[8] = {0x02, 0x00, 0,0, 0,0, 0x00,0x00};
-
-uint8_t bufferDebug[32] = {0xF0, 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,0,0,0,0,0,0,0,0,0,0,0,0,30};
 
 void send_outofrange_event()
 {
@@ -71,56 +63,51 @@ void send_outofrange_event()
 	send_pen_event(penEvent);
 }
 
+volatile uint8_t timer0_10ms;
+
+bool adb_tablet;
+bool serial_tablet;
+
 void error_condition(uint8_t code)
 {
 	LED_OFF;
 
 	while (1)
 	{
-		_delay_ms(2500);
+		Frequency::delay_ms(2500);
 
 		for(uint8_t i = code;i>0;i--)
 		{
 			LED_ON;
-			_delay_ms(700);
+			Frequency::delay_ms(700);
 			LED_OFF;
-			_delay_ms(700);
+			Frequency::delay_ms(700);
 		}
 	}
 }
 
-volatile uint8_t timer0_10ms;
-
-bool adb_tablet;
-bool serial_tablet;
-bool is_8Mhz = false;
-
-void delay_ms(double ms)
-{
-	if(is_8Mhz)
-		_delay_ms(ms/2.0);
-	else
-		_delay_ms(ms);
-}
-
 int main(void)
 {
-	// setup a default 8 MHz clock
-	CPU_PRESCALE(1);
+	Frequency::poweronCpuFrequency(); // set default 8Mhz
 
-	// make sure the LED is off
+	// make sure the LED is off to start with
 	LED_CONFIG;
 	LED_OFF;
 
 	if(!extdata_init())
 		error_condition(2);
 
-	is_8Mhz = extdata_getValue8(EXTDATA_CPU_CORE_CLOCK) == EXTDATA_CPU_CORE_CLOCK_F_8MHZ;
+	Frequency::setupCpuFrequency(); // set to 16Mhz if configured to do so
 
-	if(!is_8Mhz)
+	bool gpio_error = false;
+
+	//------------------------------------
+	// custom GPIO initialization
+	//------------------------------------
+	if(!GpioInit::customGpioInit(false))
 	{
-		// set CPU speed to 16Mhz
-		CPU_PRESCALE(0);
+		// note that it failed.
+		gpio_error = true;
 	}
 
 	serial_tablet = extdata_getValue8(EXTDATA_SERIAL_PORT) == EXTDATA_SERIAL_PORT_SLAVE_DIGITIZER;
@@ -137,18 +124,33 @@ int main(void)
 	sei();
 	//------------------------------------
 
+	//------------------------------------------
+	// wait for USB subsystem to be initialized
+	//------------------------------------------
+
 	while (!usb_configured())
 	{
 		/* blink fast while waiting */
 		LED_TOGGLE;
-		delay_ms(30);
+		Frequency::delay_ms(30);
 	}
+
+	LED_ON;
+	Frequency::delay_ms(1000); // 1 second delay to let the host react
+	LED_OFF;
 
 	console::init();
 
-	LED_ON;
-	delay_ms(1000); // 1 second delay to let the host react
-	LED_OFF;
+	//------------------------------------
+	// custom GPIO initialization
+	//------------------------------------
+	if(gpio_error )
+	{
+		// rerun the execution just for the sake of printing messages
+		GpioInit::customGpioInit(true);
+		// halt and indefinitely blink led 3 times
+		error_condition(3);
+	}
 
 	Pen::init();
 
