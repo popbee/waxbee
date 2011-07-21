@@ -195,8 +195,10 @@ public class GenerateSource
 				typeClass = "UInt16Item";
 			else if(type.equals("enum"))
 				typeClass = "EnumItem";
-			else if(type.equals("string"))
-				typeClass = "StringItem";
+			else if(type.equals("utf8string"))
+				typeClass = "Utf8StringItem";
+			else if(type.equals("usbstring"))
+				typeClass = "USBStringItem";
 			else if(type.equals("binary"))
 				typeClass = "BinaryItem";
 			else if(type.equals("special"))
@@ -257,7 +259,11 @@ public class GenerateSource
 				
 				writer.write("\n\t\t\t)");
 			}
-			else if(typeClass.equals("StringItem"))
+			else if(typeClass.equals("Utf8StringItem"))
+			{
+				writer.write(", null, null"); // value & value comment
+			}
+			else if(typeClass.equals("USBStringItem"))
 			{
 				writer.write(", null, null"); // value & value comment
 			}

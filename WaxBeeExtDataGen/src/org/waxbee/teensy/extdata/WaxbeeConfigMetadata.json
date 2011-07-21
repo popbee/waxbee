@@ -6,7 +6,7 @@
 		VERSION : 4,
 		MAIN_TABLE_ADDRESS_PLACEHOLDER:	0x0123,
 		USB_STRING_COUNT: 5,
-		COUNT: 41
+		COUNT: 42
 	},
 
 	items: 
@@ -107,31 +107,31 @@
 
 		USB_STRING1: {
 			index: 8,
-			type:string,
+			type:usbstring,
 			name:'USB Descriptor String index 01'
 		},
 
 		USB_STRING2: {
 			index: 9,
-			type:string,
+			type:usbstring,
 			name:'USB Descriptor String index 02'
 		},
 		
 		USB_STRING3: {
 			index: 10,
-			type:string,
+			type:usbstring,
 			name:'USB Descriptor String index 03'
 		},
 		
 		USB_STRING4: {
 			index: 11,
-			type:string,
+			type:usbstring,
 			name:'USB Descriptor String index 04'
 		},
 		
 		USB_STRING5: {
 			index: 12,
-			type:string,
+			type:usbstring,
 			name:'USB Descriptor String index 05'
 		},
 			
@@ -408,6 +408,13 @@
 					name:'38400 Baud, N-8-1'
 				}
 			}
+		},
+		
+		GPIO_INIT: {
+			index:41,
+			type:utf8string,
+			name:'GPIO Init string',
+			comment: 'Power up setup of GPIO pins\nSyntax: comma separated list of commands. Example:\nC7^,D4-,P250,D4+,P500,D4-\nD4 : Pin D4, + drive high (VCC), - drive low (GND), ^ pull-up, ~ floating, Pn Pause for "n" ms'
 		}
 	}
 }
