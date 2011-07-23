@@ -26,11 +26,9 @@
 
 #include <math.h>
 #include <avr/io.h>
-
 #include <avr/interrupt.h>
 
 #include "avr_util.h"
-#include "waxbee_main.h"
 #include "adb_codec.h"
 #include "adb_controller.h"
 
@@ -47,26 +45,30 @@
 #include "gpioinit.h"
 #include "pen_events.h"
 #include "frequency.h"
+#include "debugproc.h"
 
 #include <avr/pgmspace.h>
 
-#define TIMER0_PRESCALER_DIVIDER	1024
-#define TIMER0_PRESCALER_SETTING	(BITV(CS10, 1) | BITV(CS11, 0) | BITV(CS12, 1))
-
-void send_outofrange_event()
+void send_initial_event()
 {
 	Pen::PenEvent penEvent;
+	Pen::TouchEvent touchEvent;
 
 	penEvent.proximity = 0;
 	penEvent.is_mouse = 0;
 
-	send_pen_event(penEvent);
-}
+	Pen::send_pen_event(penEvent);
 
-volatile uint8_t timer0_10ms;
+	if(Pen::touchEnabled())
+	{
+		touchEvent.touch = false;
+		Pen::send_touch_event(touchEvent);
+	}
+}
 
 bool adb_tablet;
 bool serial_tablet;
+bool debug_processing;
 
 void error_condition(uint8_t code)
 {
@@ -154,6 +156,9 @@ int main(void)
 
 	Pen::init();
 
+	debug_processing = DebugProc::init();
+
+
 	if(serial_tablet)
 	{
 		switch(extdata_getValue8(EXTDATA_SLAVE_PROTOCOL))
@@ -172,13 +177,7 @@ int main(void)
 //        static double rad = 0;
 
 	// send a first packet to signify that there is no pen in proximity
-	send_outofrange_event();
-
-        // Configure timer 0 to generate a timer overflow interrupt (100Hz)
-        timer0_10ms = 0;
-        TCCR0A = 0x00;
-        TCCR0B = TIMER0_PRESCALER_SETTING;
-        TIMSK0 = (1<<TOIE0);
+	send_initial_event();
 
         //------------------------
         // Main Loop
@@ -192,45 +191,8 @@ int main(void)
         	if(serial_tablet)
         		serial::serialPortProcessing();
 
-/*		// the following generates a series of "pressured" strokes.
- *
- * 		if (timer0_10ms >= 2000/10)
-		{
-			LED_TOGGLE;
-
-			timer0_10ms = 0;
-
-			rad+=0.1;
-
-			double radslow = rad / 30;
-			double x = (2.0+cos(rad) + cos(radslow)) / 4.0;
-			double y = (2.0+sin(rad*0.9) + sin(radslow*0.68)) / 4.0;
-
-			double pressure = sin(rad*1.7);
-
-			if(pressure < 0)
-				pressure = 0;
-
-			pressure = 0;
-
-//			console::println("Test!");
-//			console::flush();
-//			send_wacom_packet_double(pressure, x, y);
-			// send a second packet "close" to the first one to be taken into consideration
-			// (else it seems something is "filtering" the position).
-			// Need not exceed ~500ms it appears (for the Graphire3 on Windows at least)
-//			send_wacom_packet_double(pressure, x, y);
-
-			// stroke end ?
-//			send_outofrange_event();
-		}
-*/	}
-}
-
-ISR(TIMER0_OVF_vect)
-{
-	// setup the timer0 to trigger again in 10ms or 100 times per second (100Hz)
-	TCNT0 = (0x100 - ((CPUCLOCK / TIMER0_PRESCALER_DIVIDER) / 100));
-	timer0_10ms++;
+        	if(debug_processing)
+        		DebugProc::processing();
+	}
 }
 

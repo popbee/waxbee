@@ -11,6 +11,7 @@
 #include "extdata.h"
 #include "pen_events.h"
 #include "wacom_usb.h"
+#include "debugproc.h"
 
 /** This is the common portion between the input tablet and the output tablet.
  *
@@ -292,11 +293,28 @@ namespace Pen
 			case EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL4:
 				WacomUsb::send_protocol4_packet(penEvent);
 				break;
-			case EXTDATA_USB_PROTOCOL_WACOM_BAMBOO:
-				WacomUsb::send_bamboo_packet(penEvent);
+			case EXTDATA_USB_PROTOCOL_WACOM_BAMBOO_TOUCH:
+				WacomUsb::send_bamboo_pen_packet(penEvent);
 				break;
 			case EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL5:
 				WacomUsb::send_protocol5_packet(penEvent);
+				break;
+			default:
+				break;
+		}
+	}
+
+	bool touchEnabled()
+	{
+		return usbProtocol == EXTDATA_USB_PROTOCOL_WACOM_BAMBOO_TOUCH;
+	}
+
+	void send_touch_event(Pen::TouchEvent& touchEvent)
+	{
+		switch(usbProtocol)
+		{
+			case EXTDATA_USB_PROTOCOL_WACOM_BAMBOO_TOUCH:
+				WacomUsb::send_bamboo_touch_packet(touchEvent);
 				break;
 			default:
 				break;

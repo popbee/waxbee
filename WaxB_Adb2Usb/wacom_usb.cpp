@@ -9,6 +9,7 @@
 #include "wacom_usb.h"
 #include "pen_events.h"
 #include "tables.h"
+#include "debugproc.h"
 
 namespace WacomUsb
 {
@@ -76,6 +77,8 @@ namespace WacomUsb
 			protocol4_packet.eraser = 0;
 			protocol4_packet.button0 = 0;
 			protocol4_packet.button1 = 0;
+
+			DebugProc::proxOutTrigger();
 		}
 
 /*		if(console::console_enabled)
@@ -113,7 +116,7 @@ namespace WacomUsb
 	// USB Bamboo Pen Packet
 	//-----------------------------------------------------------------
 
-	struct bamboo_struct
+	struct bamboo_pen_struct
 	{
 		union
 		{
@@ -140,73 +143,104 @@ namespace WacomUsb
 				uint8_t distance;
 			};
 		};
-	} bamboo_packet;
+	} bamboo_pen_packet;
 
-	void send_bamboo_packet(Pen::PenEvent& penEvent)
+	void send_bamboo_pen_packet(Pen::PenEvent& penEvent)
 	{
-		bamboo_packet.hid_identifier = 0x02;
+		bamboo_pen_packet.hid_identifier = 0x02;
 
-		bamboo_packet.notsure = 0;
+		bamboo_pen_packet.notsure = 0;
 
-//		bamboo_packet.is_mouse = penEvent.is_mouse; // no mouse with bamboo(?)
-		bamboo_packet.inrange = penEvent.proximity;
+//		bamboo_pen_packet.is_mouse = penEvent.is_mouse; // no mouse with bamboo(?)
+		bamboo_pen_packet.inrange = penEvent.proximity;
 
-		if(bamboo_packet.inrange)
+		if(bamboo_pen_packet.inrange)
 		{
-			bamboo_packet.x = Pen::compute_x_position(penEvent.x);
-			bamboo_packet.y = Pen::compute_y_position(penEvent.y);
-			bamboo_packet.pressure = Pen::compute_pressure(penEvent.pressure);
-			bamboo_packet.proximity = penEvent.proximity;
-			bamboo_packet.touch = penEvent.touch;
-			bamboo_packet.eraser = penEvent.eraser;
-			bamboo_packet.button0 = penEvent.button0;
-			bamboo_packet.button1 = penEvent.button1;
-			bamboo_packet.distance = 0x1A; // not sure if that value is used(?)
-			bamboo_packet.outofprox = 0;
+			bamboo_pen_packet.x = Pen::compute_x_position(penEvent.x);
+			bamboo_pen_packet.y = Pen::compute_y_position(penEvent.y);
+			bamboo_pen_packet.pressure = Pen::compute_pressure(penEvent.pressure);
+			bamboo_pen_packet.proximity = penEvent.proximity;
+			bamboo_pen_packet.touch = penEvent.touch;
+			bamboo_pen_packet.eraser = penEvent.eraser;
+			bamboo_pen_packet.button0 = penEvent.button0;
+			bamboo_pen_packet.button1 = penEvent.button1;
+			bamboo_pen_packet.distance = 0x1A; // not sure if that value is used(?)
+			bamboo_pen_packet.outofprox = 0;
 		}
 		else
 		{
-			bamboo_packet.x = 0;
-			bamboo_packet.y = 0;
-			bamboo_packet.proximity = 0;
-			bamboo_packet.pressure = 0;
-			bamboo_packet.distance = 0;
-			bamboo_packet.touch = 0;
-			bamboo_packet.eraser = 0;
-			bamboo_packet.button0 = 0;
-			bamboo_packet.button1 = 0;
-			bamboo_packet.outofprox = 1;
+			bamboo_pen_packet.x = 0;
+			bamboo_pen_packet.y = 0;
+			bamboo_pen_packet.proximity = 0;
+			bamboo_pen_packet.pressure = 0;
+			bamboo_pen_packet.distance = 0;
+			bamboo_pen_packet.touch = 0;
+			bamboo_pen_packet.eraser = 0;
+			bamboo_pen_packet.button0 = 0;
+			bamboo_pen_packet.button1 = 0;
+			bamboo_pen_packet.outofprox = 1;
+
+			DebugProc::proxOutTrigger();
 		}
 
 		if(console::console_enabled)
 		{
 			console::print("[USB Packet - prox:");
-			console::printbit(bamboo_packet.proximity);
+			console::printbit(bamboo_pen_packet.proximity);
 			console::print(" outofprox:");
-			console::printbit(bamboo_packet.outofprox);
+			console::printbit(bamboo_pen_packet.outofprox);
 			console::print(" range:");
-			console::printbit(bamboo_packet.inrange);
+			console::printbit(bamboo_pen_packet.inrange);
 			console::print(" touc:");
-			console::printbit(bamboo_packet.touch);
+			console::printbit(bamboo_pen_packet.touch);
 			console::print(" era:");
-			console::printbit(bamboo_packet.eraser);
+			console::printbit(bamboo_pen_packet.eraser);
 			console::print(" b0:");
-			console::printbit(bamboo_packet.button0);
+			console::printbit(bamboo_pen_packet.button0);
 			console::print(" b1:");
-			console::printbit(bamboo_packet.button1);
+			console::printbit(bamboo_pen_packet.button1);
 			console::print(" x=");
-			console::printNumber(bamboo_packet.x);
+			console::printNumber(bamboo_pen_packet.x);
 			console::print(", y=");
-			console::printNumber(bamboo_packet.y);
+			console::printNumber(bamboo_pen_packet.y);
 			console::print(", pressure=");
-			console::printNumber(bamboo_packet.pressure);
+			console::printNumber(bamboo_pen_packet.pressure);
 			console::print(", distance=");
-			console::printNumber(bamboo_packet.distance);
+			console::printNumber(bamboo_pen_packet.distance);
 			console::println("]");
 		}
 
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
-			usb_rawhid_send(bamboo_packet.buffer, 9, RAWHID_TX_ENDPOINT, 50);
+			usb_rawhid_send(bamboo_pen_packet.buffer, 9, RAWHID_TX_ENDPOINT, 50);
+	}
+
+	struct bamboo_touch_struct
+	{
+		union
+		{
+			uint8_t buffer[20];
+			struct
+			{
+				uint8_t hid_identifier; // 0x2
+			};
+		};
+	} bamboo_touch_packet;
+
+	void send_bamboo_touch_packet(Pen::TouchEvent& touchEvent)
+	{
+		if(!touchEvent.touch)
+		{
+			for(int i=0;i<20;i++)
+				bamboo_touch_packet.buffer[i] = 0;
+			bamboo_touch_packet.hid_identifier = 0x2;
+		}
+		else
+		{
+			return;
+		}
+
+		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
+			usb_rawhid_send(bamboo_touch_packet.buffer, 20, RAWHID_TX_ENDPOINT, 50);
 	}
 
 	//-----------------------------------------------------------------
@@ -396,6 +430,8 @@ namespace WacomUsb
 			{
 				console::println("[USB Packet - Out of range packet (all zeros)]");
 			}
+
+			DebugProc::proxOutTrigger();
 		}
 		else
 		{

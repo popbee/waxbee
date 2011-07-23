@@ -12,6 +12,15 @@
 
 namespace Pen
 {
+	struct TouchEvent
+	{
+		bool touch;
+		uint16_t f1_x;
+		uint16_t f1_y;
+		uint16_t f2_x;
+		uint16_t f2_y;
+	};
+
 	struct PenEvent
 	{
 		bool proximity:1;
@@ -40,6 +49,9 @@ namespace Pen
 	uint16_t compute_pressure(uint16_t sourcevalue);
 
 	void send_pen_event(Pen::PenEvent& penEvent);
+
+	bool touchEnabled();
+	void send_touch_event(Pen::TouchEvent& touchEvent);
 }
 
 #endif /* PEN_EVENTS_H_ */

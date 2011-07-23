@@ -4,7 +4,7 @@
 
 #define EXTDATA_USB_STRING_COUNT 5
 
-#define EXTDATA_COUNT 42
+#define EXTDATA_COUNT 43
 
 #define EXTDATA_VERSION 4
 
@@ -45,7 +45,7 @@
 // EXTDATA_USB_PROTOCOL should contain one of:
 #define EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL5	5	// Wacom Protocol 5
 #define EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL4	4	// Wacom Protocol 4
-#define EXTDATA_USB_PROTOCOL_WACOM_BAMBOO	6	// Wacom Bamboo
+#define EXTDATA_USB_PROTOCOL_WACOM_BAMBOO_TOUCH	6	// Wacom Bamboo Touch
 
 #define EXTDATA_USB_ENDPOINT0SIZE	14	// USB Endpoint 0 Buffer size
 #define EXTDATA_USB_ENDPOINT1SIZE	15	// USB Endpoint 1 Buffer size
@@ -65,6 +65,7 @@
 // EXTDATA_SLAVE_PROTOCOL should contain one of:
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_PROTOCOL5	3	// Wacom Protocol 5
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_PROTOCOL4	4	// Wacom Protocol 4
+#define EXTDATA_SLAVE_PROTOCOL_WACOM_ISDV4_TOUCH	5	// Wacom ISDV4 + Touch (Penenabled)
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_ISDV4	2	// Wacom ISDV4 (Penenabled)
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_ADB	1	// Wacom ADB
 
@@ -106,3 +107,4 @@
 #define EXTDATA_SERIAL_PORT_SPEED_BAUD_19200	1	// 19200 Baud, N-8-1
 
 #define EXTDATA_GPIO_INIT	41	// utf8string - GPIO Init string
+#define EXTDATA_DEBUG_DATA	42	// binary - Debug Data
