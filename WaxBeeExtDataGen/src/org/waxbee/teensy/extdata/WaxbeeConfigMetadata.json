@@ -6,7 +6,7 @@
 		VERSION : 4,
 		MAIN_TABLE_ADDRESS_PLACEHOLDER:	0x0123,
 		USB_STRING_COUNT: 5,
-		COUNT: 42
+		COUNT: 43
 	},
 
 	items: 
@@ -150,10 +150,10 @@
 					value:5,
 					name:'Wacom Protocol 5'
 				},
-				WACOM_BAMBOO:
+				WACOM_BAMBOO_TOUCH:
 				{
 					value:6,
-					name:'Wacom Bamboo'
+					name:'Wacom Bamboo Touch'
 				}
 			}
 		},
@@ -246,6 +246,11 @@
 				{
 					value:2,
 					name:'Wacom ISDV4 (Penenabled)'
+				},
+				WACOM_ISDV4_TOUCH:
+				{
+					value:5,
+					name:'Wacom ISDV4 + Touch (Penenabled)'
 				},
 				WACOM_PROTOCOL4:
 				{
@@ -415,6 +420,13 @@
 			type:utf8string,
 			name:'GPIO Init string',
 			comment: 'Power up setup of GPIO pins\nSyntax: comma separated list of commands. Example:\nC7^,D4-,P250,D4+,P500,D4-\nD4 : Pin D4, + drive high (VCC), - drive low (GND), ^ pull-up, ~ floating, Pn Pause for "n" ms'
+		},
+		
+		DEBUG_DATA: {
+			index:42,
+			type:binary,
+			name:'Debug Data',
+			comment: 'Multi-purpose internal debug data. To be left empty for normal operation.'
 		}
 	}
 }
