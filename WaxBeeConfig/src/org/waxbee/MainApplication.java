@@ -123,7 +123,7 @@ public class MainApplication extends JFrame
 		p.add(itsMonitorsCombo, "wmin 40,grow 0,wrap");
 
 		setIconImage(getImage("appicon.png"));
-		setTitle("Waxbee Config 0.7d");
+		setTitle("Waxbee Config 0.7e");
 
 		try
 		{
