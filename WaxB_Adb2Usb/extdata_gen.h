@@ -67,6 +67,7 @@
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_PROTOCOL4	4	// Wacom Protocol 4
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_ISDV4_TOUCH	5	// Wacom ISDV4 + Touch (Penenabled)
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_ISDV4	2	// Wacom ISDV4 (Penenabled)
+#define EXTDATA_SLAVE_PROTOCOL_TOPAZ	6	// Topaz tablet
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_ADB	1	// Wacom ADB
 
 #define EXTDATA_SLAVE_ORIENTATION	28	// enum - Slave Tablet Orientation

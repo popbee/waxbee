@@ -42,6 +42,7 @@
 #include "isdv4_serial.h"
 #include "protocol4_serial.h"
 #include "protocol5_serial.h"
+#include "topaz_serial.h"
 #include "gpioinit.h"
 #include "pen_events.h"
 #include "frequency.h"
@@ -171,6 +172,9 @@ int main(void)
 				break;
 			case EXTDATA_SLAVE_PROTOCOL_WACOM_PROTOCOL5:
 				protocol5_serial::init();
+				break;
+			case EXTDATA_SLAVE_PROTOCOL_TOPAZ:
+				topaz_serial::init();
 				break;
 		}
 	}
