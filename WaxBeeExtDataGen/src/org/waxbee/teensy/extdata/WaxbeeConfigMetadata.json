@@ -261,6 +261,11 @@
 				{
 					value:3,
 					name:'Wacom Protocol 5'
+				},
+				TOPAZ:
+				{
+					value:6,
+					name:'Topaz tablet'
 				}
 			}
 		},
