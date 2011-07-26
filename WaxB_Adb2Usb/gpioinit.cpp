@@ -171,6 +171,19 @@ namespace GpioInit
 		{
 			uint8_t c = pgm_read_byte(gpioinit + index);
 	
+			if(c != ',')
+			{
+				command[cmdlen] = c;
+				cmdlen++;
+				if(cmdlen > 8)
+				{
+					reportGpioError("Error parsing init string, command too long (pos = ");
+					console::printNumber(index);
+					console::println(")");
+					return false;
+				}
+			}
+
 			if(c == ',' || index+1 == length)
 			{
 				if(!processGpioCommand(command, cmdlen, errors_only))
@@ -182,16 +195,6 @@ namespace GpioInit
 				}
 				cmdlen = 0;
 				continue;
-			}
-	
-			command[cmdlen] = c;
-			cmdlen++;
-			if(cmdlen > 8)
-			{
-				reportGpioError("Error parsing init string, command too long (pos = ");
-				console::printNumber(index);
-				console::println(")");
-				return false;
 			}
 		}
 
