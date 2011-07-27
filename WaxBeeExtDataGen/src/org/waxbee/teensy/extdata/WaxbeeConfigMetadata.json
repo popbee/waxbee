@@ -6,7 +6,7 @@
 		VERSION : 4,
 		MAIN_TABLE_ADDRESS_PLACEHOLDER:	0x0123,
 		USB_STRING_COUNT: 5,
-		COUNT: 43
+		COUNT: 44
 	},
 
 	items: 
@@ -420,18 +420,26 @@
 			}
 		},
 		
-		GPIO_INIT: {
+		IDLE_TIME_LIMIT_MS: {
 			index:41,
+			type:uint16,
+			name:'Idle time limit (ms)',
+			comment:'Maximum time before packet gets repeated.\n0 to disable; max: 1200 ms'		
+		},
+		
+		GPIO_INIT: {
+			index:42,
 			type:utf8string,
 			name:'GPIO Init string',
 			comment: 'Power up setup of GPIO pins\nSyntax: comma separated list of commands. Example:\nC7^,D4-,P250,D4+,P500,D4-\nD4 : Pin D4, + drive high (VCC), - drive low (GND), ^ pull-up, ~ floating, Pn Pause for "n" ms'
 		},
 		
 		DEBUG_DATA: {
-			index:42,
+			index:43,
 			type:binary,
 			name:'Debug Data',
 			comment: 'Multi-purpose internal debug data. To be left empty for normal operation.'
 		}
+		
 	}
 }
