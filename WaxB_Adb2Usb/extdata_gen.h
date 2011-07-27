@@ -4,7 +4,7 @@
 
 #define EXTDATA_USB_STRING_COUNT 5
 
-#define EXTDATA_COUNT 43
+#define EXTDATA_COUNT 44
 
 #define EXTDATA_VERSION 4
 
@@ -107,5 +107,6 @@
 #define EXTDATA_SERIAL_PORT_SPEED_BAUD_38400	2	// 38400 Baud, N-8-1
 #define EXTDATA_SERIAL_PORT_SPEED_BAUD_19200	1	// 19200 Baud, N-8-1
 
-#define EXTDATA_GPIO_INIT	41	// utf8string - GPIO Init string
-#define EXTDATA_DEBUG_DATA	42	// binary - Debug Data
+#define EXTDATA_IDLE_TIME_LIMIT_MS	41	// uint16 - Idle time limit (ms)
+#define EXTDATA_GPIO_INIT	42	// utf8string - GPIO Init string
+#define EXTDATA_DEBUG_DATA	43	// binary - Debug Data

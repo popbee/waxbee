@@ -50,6 +50,10 @@ namespace Pen
 
 	void send_pen_event(Pen::PenEvent& penEvent);
 
+	void fill();
+
+	void timer_5ms_intr();
+
 	bool touchEnabled();
 	void send_touch_event(Pen::TouchEvent& touchEvent);
 }

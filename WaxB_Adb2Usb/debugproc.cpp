@@ -9,17 +9,13 @@
 #include "led.h"
 #include "usb.h"
 #include "console.h"
-
-#define CPUCLOCK		F_CPU    // 16000000
-
-#define TIMER0_PRESCALER_DIVIDER	1024
-#define TIMER0_PRESCALER_SETTING	(BITV(CS10, 1) | BITV(CS11, 0) | BITV(CS12, 1))
+#include "pen_events.h"
 
 #define MAXPACKET	40
 
 static uint8_t buffer[MAXPACKET];
 
-volatile uint8_t timer0_10ms;
+volatile uint8_t timer_10ms;
 
 
 namespace DebugProc
@@ -49,15 +45,13 @@ namespace DebugProc
 	uint8_t startCountdownSeconds;
 	uint8_t iterationsCountdown;
 
-	/** Configure timer 0 to generate a timer overflow interrupt (100Hz)
-	 * (every 10ms)
-	 */
-	static void configureTimer0()
+	bool is5ms = false;
+
+	void timer_5ms_intr()
 	{
-		timer0_10ms = 0;
-		TCCR0A = 0x00;
-		TCCR0B = TIMER0_PRESCALER_SETTING;
-		TIMSK0 = (1<<TOIE0);
+		is5ms = !is5ms;
+		if(is5ms)
+			timer_10ms++;
 	}
 
 	static void trigger(bool repeating)
@@ -82,6 +76,8 @@ namespace DebugProc
 	/** return true if debugging processing enabled */
 	bool init()
 	{
+		timer_10ms = 0;
+
 		if(extdata_getLength16(EXTDATA_DEBUG_DATA) == 0)
 			return false;
 
@@ -112,8 +108,6 @@ namespace DebugProc
 			console::print("** Debug Activity Enabled ** seconds=");
 			console::printNumber(startDelaySeconds);
 			console::println();
-
-			configureTimer0();
 
 			if(!trigOnProxOut)
 			{
@@ -169,10 +163,10 @@ namespace DebugProc
 		if(state == stopped) // be quick when not running
 			return;
 
-		if(timer0_10ms < interval_10ms)
+		if(timer_10ms < interval_10ms)
 			return;
 		
-		timer0_10ms = 0;
+		timer_10ms = 0;
 
 		switch(state)
 		{
@@ -257,10 +251,5 @@ namespace DebugProc
 */
 
 
-ISR(TIMER0_OVF_vect)
-{
-	// setup the timer0 to trigger again in 10ms or 100 times per second (100Hz)
-	TCNT0 = (0x100 - ((CPUCLOCK / TIMER0_PRESCALER_DIVIDER) / 100));
-	timer0_10ms++;
-}
+
 

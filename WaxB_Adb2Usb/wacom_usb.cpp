@@ -47,8 +47,9 @@ namespace WacomUsb
 		};
 	} protocol4_packet;
 
-	void send_protocol4_packet(Pen::PenEvent& penEvent)
+	bool send_protocol4_packet(Pen::PenEvent& penEvent)
 	{
+		bool shouldfill = false;
 		// copy event for direct access (TODO: does that make a difference?)
 
 		protocol4_packet.hid_identifier = 0x02;
@@ -67,6 +68,8 @@ namespace WacomUsb
 			protocol4_packet.eraser = penEvent.eraser;
 			protocol4_packet.button0 = penEvent.button0;
 			protocol4_packet.button1 = penEvent.button1;
+
+			shouldfill = true;
 		}
 		else
 		{
@@ -110,6 +113,8 @@ namespace WacomUsb
 */
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
 			usb_rawhid_send(protocol4_packet.buffer, 8, RAWHID_TX_ENDPOINT, 50);
+
+		return shouldfill;
 	}
 
 	//-----------------------------------------------------------------
@@ -145,8 +150,9 @@ namespace WacomUsb
 		};
 	} bamboo_pen_packet;
 
-	void send_bamboo_pen_packet(Pen::PenEvent& penEvent)
+	bool send_bamboo_pen_packet(Pen::PenEvent& penEvent)
 	{
+		bool shouldfill = false;
 		bamboo_pen_packet.hid_identifier = 0x02;
 
 		bamboo_pen_packet.notsure = 0;
@@ -166,6 +172,8 @@ namespace WacomUsb
 			bamboo_pen_packet.button1 = penEvent.button1;
 			bamboo_pen_packet.distance = 0x1A; // not sure if that value is used(?)
 			bamboo_pen_packet.outofprox = 0;
+
+			shouldfill = true;
 		}
 		else
 		{
@@ -212,6 +220,8 @@ namespace WacomUsb
 
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
 			usb_rawhid_send(bamboo_pen_packet.buffer, 9, RAWHID_TX_ENDPOINT, 50);
+
+		return shouldfill;
 	}
 
 	struct bamboo_touch_struct
@@ -313,8 +323,10 @@ namespace WacomUsb
 
 	static bool currentlyInRange = false;
 
-	void send_protocol5_packet(Pen::PenEvent& penEvent)
+	bool send_protocol5_packet(Pen::PenEvent& penEvent)
 	{
+		bool shouldfill = false;
+
 		uint8_t* pbuf = protocol5_packet.buffer;
 
 		*pbuf++ = 0x02; // [0] - HID report identifier
@@ -373,6 +385,7 @@ namespace WacomUsb
 					console::printHex(protocol5_packet.byte8,2);
 					console::println("]");
 				}
+
 */			}
 			else
 			{
@@ -409,6 +422,8 @@ namespace WacomUsb
 					console::println("]");
 				}
 			}
+
+			shouldfill = true;
 		}
 		else if(currentlyInRange)
 		{
@@ -436,11 +451,13 @@ namespace WacomUsb
 		else
 		{
 			// invalid state -- do not send anything
-			return;
+			return false;
 		}
 
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
 			usb_rawhid_send(protocol5_packet.buffer, 10, RAWHID_TX_ENDPOINT, 50);
+
+		return shouldfill;
 	}
 }
 

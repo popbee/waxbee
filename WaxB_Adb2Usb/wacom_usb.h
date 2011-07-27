@@ -13,13 +13,13 @@
 namespace WacomUsb
 {
 //	void send_protocol4_init_packet();
-	void send_protocol4_packet(Pen::PenEvent& penEvent);
+	bool send_protocol4_packet(Pen::PenEvent& penEvent);
 
-	void send_bamboo_pen_packet(Pen::PenEvent& penEvent);
+	bool send_bamboo_pen_packet(Pen::PenEvent& penEvent);
 	void send_bamboo_touch_packet(Pen::TouchEvent& touchEvent);
 
 //	void send_protocol5_init_packet();
-	void send_protocol5_packet(Pen::PenEvent& penEvent);
+	bool send_protocol5_packet(Pen::PenEvent& penEvent);
 }
 
 #endif /* WACOM_USB_H_ */

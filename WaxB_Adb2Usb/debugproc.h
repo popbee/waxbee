@@ -16,6 +16,9 @@ namespace DebugProc
 	bool init();
 	void proxOutTrigger();
 	void processing();
+
+	/** 5ms timer interrupt entry point */
+	void timer_5ms_intr();
 }
 
 #endif // DEBUG_PROC_H_

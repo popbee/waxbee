@@ -70,6 +70,7 @@ void send_initial_event()
 bool adb_tablet;
 bool serial_tablet;
 bool debug_processing;
+bool fill_processing; // extdata driven
 
 void error_condition(uint8_t code)
 {
@@ -89,6 +90,32 @@ void error_condition(uint8_t code)
 	}
 }
 
+#define CPUCLOCK		F_CPU    // 16000000
+
+#define TIMER0_PRESCALER_DIVIDER	1024
+#define TIMER0_PRESCALER_SETTING	(BITV(CS10, 1) | BITV(CS11, 0) | BITV(CS12, 1))
+
+
+/** Configure timer 0 to generate a timer overflow interrupt (100Hz)
+ * (every 10ms)
+ */
+static void configureTimer0()
+{
+	TCCR0A = 0x00;
+	TCCR0B = TIMER0_PRESCALER_SETTING;
+	TIMSK0 = (1<<TOIE0);
+}
+
+ISR(TIMER0_OVF_vect)
+{
+	// setup the timer0 to trigger again in 1ms or 1000 times per second (1kHz)
+	TCNT0 = (0x100 - ((CPUCLOCK / TIMER0_PRESCALER_DIVIDER) / 100));
+
+	DebugProc::timer_5ms_intr();
+	Pen::timer_5ms_intr();
+}
+
+
 int main(void)
 {
 	Frequency::poweronCpuFrequency(); // set default 8Mhz
@@ -104,6 +131,8 @@ int main(void)
 
 	bool gpio_error = false;
 
+	configureTimer0();
+
 	//------------------------------------
 	// custom GPIO initialization
 	//------------------------------------
@@ -115,6 +144,7 @@ int main(void)
 
 	serial_tablet = extdata_getValue8(EXTDATA_SERIAL_PORT) == EXTDATA_SERIAL_PORT_SLAVE_DIGITIZER;
 	adb_tablet = extdata_getValue8(EXTDATA_ADB_PORT) == EXTDATA_ADB_PORT_SLAVE_DIGITIZER;
+	fill_processing = extdata_getValue16(EXTDATA_IDLE_TIME_LIMIT_MS) > 0;
 
 	if(adb_tablet)
 		ADB::setup();
@@ -194,6 +224,9 @@ int main(void)
 
         	if(serial_tablet)
         		serial::serialPortProcessing();
+
+        	if(fill_processing)
+        		Pen::fill(); // add more usb packets
 
         	if(debug_processing)
         		DebugProc::processing();

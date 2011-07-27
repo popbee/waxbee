@@ -286,22 +286,42 @@ namespace Pen
 		return scale_uint16(sourcevalue, slavePressureMax, usbPressureMax);
 	}
 
+	static PenEvent fillerPenEvent;
+	static uint8_t filler_countdown_5ms = 0;
+
+	void timer_5ms_intr()
+	{
+		if(filler_countdown_5ms > 1)
+			filler_countdown_5ms--;
+	}
+
 	void send_pen_event(Pen::PenEvent& penEvent)
 	{
+		bool shouldfill = false;
+
 		switch(usbProtocol)
 		{
 			case EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL4:
-				WacomUsb::send_protocol4_packet(penEvent);
+				shouldfill = WacomUsb::send_protocol4_packet(penEvent);
 				break;
 			case EXTDATA_USB_PROTOCOL_WACOM_BAMBOO_TOUCH:
-				WacomUsb::send_bamboo_pen_packet(penEvent);
+				shouldfill = WacomUsb::send_bamboo_pen_packet(penEvent);
 				break;
 			case EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL5:
-				WacomUsb::send_protocol5_packet(penEvent);
+				shouldfill = WacomUsb::send_protocol5_packet(penEvent);
 				break;
 			default:
 				break;
 		}
+
+		if(shouldfill)
+		{
+			fillerPenEvent = penEvent;
+
+			filler_countdown_5ms = extdata_getValue16(EXTDATA_IDLE_TIME_LIMIT_MS) / 5;
+		}
+		else
+			filler_countdown_5ms = 0;
 	}
 
 	bool touchEnabled()
@@ -318,6 +338,15 @@ namespace Pen
 				break;
 			default:
 				break;
+		}
+	}
+
+	void fill()
+	{
+		if(filler_countdown_5ms == 1)
+		{
+			filler_countdown_5ms = 0;
+			send_pen_event(fillerPenEvent);
 		}
 	}
 }
