@@ -3,6 +3,8 @@ ECHO.
 
 IF "%JAVA_HOME%" == "" set JAVA_HOME=C:\Program Files\Java\jdk1.6.0_23
 
+IF [%1]==[] GOTO ERROR2
+
 set JAR_EXE=%JAVA_HOME%\bin\jar.exe
 
 IF NOT EXIST "%JAR_EXE%" GOTO ERROR
@@ -34,15 +36,22 @@ rem build the waxbee.jar application
 "%JAR_EXE%" cfme0 "%DISTRIBDIR%\waxbee\waxbee.jar" "%ROOT%\manifest.txt" org.waxbee.WaxBee -C "%DISTRIBDIR%\jar" .
 
 rem build the final zip
-"%JAR_EXE%" cfM "%DISTRIBDIR%\waxbee.zip" -C "%DISTRIBDIR%" waxbee
+"%JAR_EXE%" cfM "%DISTRIBDIR%\waxbee-%1.zip" -C "%DISTRIBDIR%" waxbee
 
-ECHO final distribution zip:  "%DISTRIBDIR%\waxbee.zip"
+ECHO final distribution zip:  "%DISTRIBDIR%\waxbee-%1.zip"
 
 goto END
 
 :ERROR
 
 ECHO Properly set JAVA_HOME to point to a Java JDK 1.6 or later
+ECHO.
+
+goto END
+
+:ERROR2
+
+ECHO Please pass the version number in the format 0-7b (no dots).
 ECHO.
 
 :END
