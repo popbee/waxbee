@@ -96,8 +96,8 @@ void error_condition(uint8_t code)
 #define TIMER0_PRESCALER_SETTING	(BITV(CS10, 1) | BITV(CS11, 0) | BITV(CS12, 1))
 
 
-/** Configure timer 0 to generate a timer overflow interrupt (100Hz)
- * (every 10ms)
+/** Configure timer 0 to generate a timer overflow interrupt (200Hz)
+ * (every 5ms)
  */
 static void configureTimer0()
 {
@@ -108,13 +108,12 @@ static void configureTimer0()
 
 ISR(TIMER0_OVF_vect)
 {
-	// setup the timer0 to trigger again in 1ms or 1000 times per second (1kHz)
-	TCNT0 = (0x100 - ((CPUCLOCK / TIMER0_PRESCALER_DIVIDER) / 100));
+	// setup the timer0 to trigger again in 5ms or 200 times per second (200Hz)
+	TCNT0 = (0x100 - ((CPUCLOCK / TIMER0_PRESCALER_DIVIDER) / 200));
 
 	DebugProc::timer_5ms_intr();
 	Pen::timer_5ms_intr();
 }
-
 
 int main(void)
 {
