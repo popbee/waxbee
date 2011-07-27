@@ -157,6 +157,9 @@ USB_HIDREPORTDESC = @[
 0xc0		# END_COLLECTION
 ]
 
+USB_HIDREPORTDESC2 = @[
+]
+
 USB_STRING1 = "WACOM"
 USB_STRING2 = "XD-1218-U - WaxBee emulation"
 USB_STRING3 = ""
@@ -166,10 +169,12 @@ USB_STRING5 = ""
 # Valid choices for USB_PROTOCOL:
 # 4: WACOM_PROTOCOL4
 # 5: WACOM_PROTOCOL5
+# 6: WACOM_BAMBOO_TOUCH
 
 USB_PROTOCOL = 5
 USB_ENDPOINT0SIZE = 8
 USB_ENDPOINT1SIZE = 10
+USB_ENDPOINT2SIZE = 0
 USB_ENDPOINT3SIZE = 0
 USB_X_MIN = 0
 USB_Y_MIN = 1190
@@ -186,6 +191,8 @@ USB_PRESSURE_MAX = 1023
 # 2: WACOM_ISDV4
 # 3: WACOM_PROTOCOL5
 # 4: WACOM_PROTOCOL4
+# 5: WACOM_ISDV4_TOUCH
+# 6: TOPAZ
 
 SLAVE_PROTOCOL = 4
 
@@ -235,6 +242,21 @@ INITIAL_SERIAL_PORT_SPEED = 0
 # 2: BAUD_38400
 
 SERIAL_PORT_SPEED = 1
+
+# Maximum time before packet gets repeated.
+# 0 to disable; max: 1200 ms#
+IDLE_TIME_LIMIT_MS = 50
+
+# Power up setup of GPIO pins
+# Syntax: comma separated list of commands. Example:
+# C7^,D4-,P250,D4+,P500,D4-
+# D4 : Pin D4, + drive high (VCC), - drive low (GND), ^ pull-up, ~ floating, Pn Pause for "n" ms#
+GPIO_INIT = ""
+
+# Multi-purpose internal debug data. To be left empty for normal operation.#
+DEBUG_DATA = @[
+]
+
 #==============================================================================
 # A note about this file and its format for the braves that wants to tweak stuff
 #------------------------------------------------------------------------------

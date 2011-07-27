@@ -218,7 +218,7 @@ SERIAL_PORT_SPEED = 1
 
 # Maximum time before packet gets repeated.
 # 0 to disable; max: 1200 ms#
-IDLE_TIME_LIMIT_MS = 25
+IDLE_TIME_LIMIT_MS = 50
 
 # Power up setup of GPIO pins
 # Syntax: comma separated list of commands. Example:
