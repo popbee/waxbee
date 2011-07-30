@@ -218,6 +218,11 @@ INITIAL_SERIAL_PORT_SPEED = 0
 
 SERIAL_PORT_SPEED = 0
 
+# Maximum time before packet gets repeated.
+# 0 to disable; max: 1200 ms#
+IDLE_TIME_LIMIT_MS = 50
+
+
 #==============================================================================
 # A note about this file and its format for the braves that wants to tweak stuff
 #------------------------------------------------------------------------------
