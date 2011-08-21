@@ -6,7 +6,7 @@
 		VERSION : 4,
 		MAIN_TABLE_ADDRESS_PLACEHOLDER:	0x0123,
 		USB_STRING_COUNT: 5,
-		COUNT: 44
+		COUNT: 46
 	},
 
 	items: 
@@ -232,8 +232,28 @@
 			name:'USB Stylus Pressure maximum'
 		},
 
-		SLAVE_PROTOCOL: {
+		USB_BUTTON_ENCODING: {
 			index:27,
+			type:enum,
+			name:'USB Buttons Encoding',
+			enum: {
+				NONE:
+				{
+					value:0,
+					name:'No button support',
+					comment:'No support for buttons encoding.' 
+				},
+				WACOM_INTUOS2_1218:
+				{
+					value:1,
+					name:'Intuos2 12x18 menu strip (1..12)',
+					comment:'Encode buttons as Intuos2-style "top menu strip". Button numbers range from 1 to 12.'
+				}
+			}
+		},
+
+		SLAVE_PROTOCOL: {
+			index:28,
 			type:enum,
 			name:'Slave (ADB/Serial side) Protocol',
 			enum: {
@@ -271,10 +291,10 @@
 		},
 
 		SLAVE_ORIENTATION: {
-			index:28,
+			index:29,
 			type:enum,
 			name: 'Slave Tablet Orientation',
-			comment: 'Orientation affect X,Y coordinates but should also\naffect "tilt" and "rotation" values accordingly.\nNOTE: Data is rotated before MIN/MAX/ANCHOR transformation',
+			comment: '(not implemented yet) Orientation affect X,Y coordinates but should also\naffect "tilt" and "rotation" values accordingly.\nNOTE: Data is rotated before MIN/MAX/ANCHOR transformation',
 			enum: {
 				NORMAL: {
 					value:0,
@@ -300,61 +320,68 @@
 		},
 
 		SLAVE_X_MIN: {
-			index:29,
+			index:30,
 			type:uint16,
 			name:'Slave Minimum X position (left)'
 		},
 		
 		SLAVE_Y_MIN: {
-			index:30,
+			index:31,
 			type:uint16,
 			name:'Slave Minimum Y position (top)'
 		},
 		
 		SLAVE_X_MAX: {
-			index:31,
+			index:32,
 			type:uint16,
 			name:'Slave Maximum X position (right)'
 		},
 		
 		SLAVE_Y_MAX: {
-			index:32,
+			index:33,
 			type:uint16,
 			name:'Slave Maximum Y position (bottom)'
 		},
 		
 		SLAVE_X_ANCHOR_MIN: {
-			index:33,
+			index:34,
 			type:uint16,
 			name:'Slave Minimum X anchor position (left) (0 to disable)'
 		},
 		
 		SLAVE_Y_ANCHOR_MIN: {
-			index:34,
+			index:35,
 			type:uint16,
 			name:'Slave Minimum Y anchor position (top) (0 to disable)'
 		},
 		
 		SLAVE_X_ANCHOR_MAX: {
-			index:35,
+			index:36,
 			type:uint16,
 			name:'Slave Maximum X anchor position (right) (0 to disable)'
 		},
 		
 		SLAVE_Y_ANCHOR_MAX: {
-			index:36,
+			index:37,
 			type:uint16,
 			name:'Slave Maximum Y anchor position (bottom) (0 to disable)'
 		},
 
 		SLAVE_PRESSURE_MAX: {
-			index:37,
+			index:38,
 			type:uint16,
 			name:'Slave Stylus Pressure maximum'
 		},
 
+		SLAVE_ACTIVE_AREAS: {
+			index:39,
+			type:binary,
+			name:'Slave Active Area',
+			comment:'Configuration of special "Active" areas on the tablet (like a button).'
+		},
+
 		CPU_CORE_CLOCK: {
-			index:38,
+			index:40,
 			type:enum,
 			name:'CPU core clock',
 			comment:'16Mhz is not recommended with 3.3v supply.',
@@ -373,7 +400,7 @@
 		},
 		
 		INITIAL_SERIAL_PORT_SPEED: {
-			index:39,
+			index:41,
 			type:enum,
 			name:'Initial Serial Port Speed',
 			comment:'Serial port speed at initialization time.',
@@ -397,7 +424,7 @@
 		},
 		
 		SERIAL_PORT_SPEED: {
-			index:40,
+			index:42,
 			type:enum,
 			name:'Serial Port Speed',
 			comment:'Serial port speed during normal operation.',
@@ -421,21 +448,21 @@
 		},
 		
 		IDLE_TIME_LIMIT_MS: {
-			index:41,
+			index:43,
 			type:uint16,
 			name:'Idle time limit (ms)',
 			comment:'Maximum time before packet gets repeated.\n0 to disable; max: 1200 ms'		
 		},
 		
 		GPIO_INIT: {
-			index:42,
+			index:44,
 			type:utf8string,
 			name:'GPIO Init string',
 			comment: 'Power up setup of GPIO pins\nSyntax: comma separated list of commands. Example:\nC7^,D4-,P250,D4+,P500,D4-\nD4 : Pin D4, + drive high (VCC), - drive low (GND), ^ pull-up, ~ floating, Pn Pause for "n" ms'
 		},
 		
 		DEBUG_DATA: {
-			index:43,
+			index:45,
 			type:binary,
 			name:'Debug Data',
 			comment: 'Multi-purpose internal debug data. To be left empty for normal operation.'
