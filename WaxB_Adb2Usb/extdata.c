@@ -17,9 +17,6 @@
 // the table total length which could be another check.
 //
 
-#include <stdint.h>
-#include "avr_util.h"
-
 #include <avr/pgmspace.h>
 #include "extdata.h"
 

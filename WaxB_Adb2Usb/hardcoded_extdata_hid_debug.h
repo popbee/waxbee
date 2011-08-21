@@ -10,9 +10,8 @@
 
 #define HARDCODED_EXTDATA
 
-#include "tables.h"
+#include "strings.h"
 #include "usb_debug_channel.h"
-#include "usb_priv.h"
 
 #define NODATA       { 0, 0xFF00 }
 #define VALUE8(val)  { val, 0xFF01 }

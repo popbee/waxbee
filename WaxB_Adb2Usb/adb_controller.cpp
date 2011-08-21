@@ -21,6 +21,7 @@
 #include "adb_codec.h"
 #include "adb_controller.h"
 #include "wacom_usb.h"
+#include "strings.h"
 
 #include <util/delay.h>
 
@@ -167,16 +168,16 @@ namespace ADB
 					eraser_mode = false;
 				}
 
-				console::print("Entering proximity. Mode=");
+				console::printP(STR_ENTERING_PROXIMITY_MODE);
 				if(eraser_mode)
-					console::println("Eraser");
+					console::printlnP(STR_ERASER);
 				else
-					console::println("Pen");
+					console::printlnP(STR_PEN);
 			}
 		}
 		else if(!adbPacket.r0.proximity)
 		{
-			console::println("Exiting proximity.");
+			console::printlnP(STR_EXITING_PROXIMITY);
 			resetToolState();
 		}
 	}
@@ -194,7 +195,7 @@ namespace ADB
 
 			if(!adbLastErrorStatus == 0)
 			{
-				console::print("ADB Error code=");
+				console::printP(STR_ERROR_CODE);
 				console::printNumber(adbLastErrorStatus);
 				console::println();
 			}
@@ -203,11 +204,11 @@ namespace ADB
 		switch(itsCurAdbState)
 		{
 			case poweron:
-				console::println("-- poweron");
+				console::printlnP(STR_POWERON);
 				resetToolState();
 			case identify:
 				debug_pulse();
-				console::println("-- identify");
+				console::printlnP(STR_IDENTIFY);
 				// [4T1:384850003C000617]
 				adbPacket.address = 4;
 				adbPacket.command = ADB_COMMAND_TALK;
@@ -221,7 +222,7 @@ namespace ADB
 
 			case identify_response:
 			{
-				console::println("-- identify_response");
+				console::printlnP(STR_IDENTIFY_RESPONSE);
 				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
 				{
 					itsCurAdbState = identify;
@@ -231,14 +232,14 @@ namespace ADB
 				uint16_t max_x = (adbPacket.r1.max_x_msb << 8) | (adbPacket.r1.max_x_lsb);
 				uint16_t max_y = (adbPacket.r1.max_y_msb << 8) | (adbPacket.r1.max_y_lsb);
 
-				console::print("ADB Tablet Info: max_x=");
+				console::printP(STR_ADB_TABLET_INFO_MAX_X);
 				console::printNumber(max_x);
-				console::print(", max_y=");
+				console::printP(STR_MAX_Y);
 				console::printNumber(max_y);
 				console::println();
 			}
 			case _4L3:
-				console::println("-- _4L3");
+				console::printlnP(STR_4L3);
 				// [4L3:6F68]
 
 				adbPacket.address = 4;
@@ -254,7 +255,7 @@ namespace ADB
 				break;
 
 			case _4L3_response:
-				console::println("-- _4L3_response");
+				console::printlnP(STR_4L3_RESPONSE);
 				if(adbLastErrorStatus != 0)
 				{
 					itsCurAdbState = _4L3;
@@ -262,7 +263,7 @@ namespace ADB
 				}
 
 			case _4T3:
-				console::println("-- _4T3");
+				console::printlnP(STR_4T3);
 				// [4T3:6968]
 
 				adbPacket.address = 4;
@@ -276,7 +277,7 @@ namespace ADB
 				break;
 
 			case _4T3_response:
-				console::println("-- _4T3_response");
+				console::printlnP(STR_4T3_RESPONSE);
 				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
 				{
 					itsCurAdbState = _4T3;
@@ -284,7 +285,7 @@ namespace ADB
 				}
 
 			case _4L1:
-				console::println("-- _4L1");
+				console::printlnP(STR_4L1);
 				// [4L1:6768]
 
 				adbPacket.address = 4;
@@ -300,7 +301,7 @@ namespace ADB
 				break;
 
 			case _4L1_response:
-				console::println("-- _4L1_response");
+				console::printlnP(STR_4L1_RESPONSE);
 				if(adbLastErrorStatus != 0)
 				{
 					itsCurAdbState = _4L1;
@@ -308,7 +309,7 @@ namespace ADB
 				}
 
 			case _4T1_check:
-				console::println("-- _4T1_check");
+				console::printlnP(STR_4T1_CHECK);
 				// [4T1:386B50003C000617]
 
 				adbPacket.address = 4;
@@ -322,7 +323,7 @@ namespace ADB
 				break;
 
 			case _4T1_check_response:
-				console::println("-- _4T1_check_response");
+				console::printlnP(STR_4T1_CHECK_RESPONSE);
 				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
 				{
 					itsCurAdbState = _4T1_check;
@@ -397,7 +398,7 @@ namespace ADB
 
 				penEvent.rotation_z = 0;
 
-				Pen::send_pen_event(penEvent);
+				Pen::input_pen_event(penEvent);
 
 				// right after proximity == 0, send a nullified packet.
 

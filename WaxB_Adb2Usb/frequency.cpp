@@ -1,7 +1,7 @@
 
 #include "frequency.h"
 
-#include <avr/delay.h>
+#include <util/delay.h>
 #include "extdata.h"
 
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))

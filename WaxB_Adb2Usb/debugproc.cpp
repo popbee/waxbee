@@ -9,14 +9,14 @@
 #include "led.h"
 #include "usb.h"
 #include "console.h"
-#include "pen_events.h"
+#include "pen_event.h"
+#include "strings.h"
 
 #define MAXPACKET	40
 
 static uint8_t buffer[MAXPACKET];
 
 volatile uint8_t timer_10ms;
-
 
 namespace DebugProc
 {
@@ -56,7 +56,7 @@ namespace DebugProc
 
 	static void trigger(bool repeating)
 	{
-		console::println("trigger()");
+		console::printlnP(STR_TRIGGER);
 
 		state = delay_before_start;
 
@@ -99,13 +99,13 @@ namespace DebugProc
 
 			if(packet_size > MAXPACKET)
 			{
-				console::print("debug: packet size too large, max=");
+				console::printP(STR_DEBUG_PACKET_SIZE_TOO_LARGE_MAX);
 				console::printNumber(MAXPACKET);
 				console::println();
 				return false;
 			}
 
-			console::print("** Debug Activity Enabled ** seconds=");
+			console::printP(STR_DEBUG_ACTIVITY_ENABLED_SECONDS);
 			console::printNumber(startDelaySeconds);
 			console::println();
 
@@ -123,7 +123,7 @@ namespace DebugProc
 	
 	void proxOutTrigger()
 	{
-		console::println("proxOutTrigger()");
+		console::printlnP(STR_PROXOUTTRIGGER);
 
 		if(!trigOnProxOut)
 			return;
@@ -145,7 +145,7 @@ namespace DebugProc
 		for(int i=0; i<packet_size; i++)
 			buffer[i] = pgm_read_byte(addr_current++);
 
-		usb_rawhid_send(buffer, packet_size, endpoint, 50);
+		usb_send_packet(buffer, packet_size, endpoint, 50);
 
 		if(addr_current > debugdata_addr + debugdata_length)
 		{
@@ -174,7 +174,7 @@ namespace DebugProc
 				break;
 			case delay_before_start:
 			{
-				console::print("delay_before_start: seconds=");
+				console::printP(STR_DELAY_BEFORE_START_SECONDS);
 				console::printNumber(startCountdownSeconds);
 				console::println();
 
@@ -192,20 +192,20 @@ namespace DebugProc
 				if(doActivity())
 				{
 					// activity done
-					console::print("Activity done: ");
+					console::printP(STR_ACTIVITY_DONE);
 
 					iterationsCountdown--;
 
 					if(iterationsCountdown > 0)
 					{
-						console::print("repeating...");
+						console::printP(STR_REPEATING);
 						console::println();
 
 						trigger(true); // repeat
 					}
 					else
 					{
-						console::print("stop");
+						console::printP(STR_STOP);
 						console::println();
 
 						reset(); // stop

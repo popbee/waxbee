@@ -4,7 +4,7 @@
 #include "console.h"
 #include "extdata.h"
 #include "frequency.h"
-
+#include "strings.h"
 
 namespace GpioInit
 {
@@ -23,15 +23,15 @@ namespace GpioInit
 		return number;
 	}
 	
-	static void reportGpioError(const char* str)
+	static void reportGpioErrorP(prog_char* progmem_str)
 	{
-		console::print("GPIO init: ");
-		console::print(str);
+		console::printP(STR_GPIO_INIT);
+		console::printP(progmem_str);
 	}
 	
 	static void reportGpioInvalidCommand()
 	{
-		reportGpioError("Invalid Port command");
+		reportGpioErrorP(STR_INVALID_PORT_COMMAND);
 	}
 	
 	/** The 3 character commands are of the form:  
@@ -133,7 +133,7 @@ namespace GpioInit
 			{
 				if(len < 2)
 				{
-					reportGpioError("Invalid Pause command");
+					reportGpioErrorP(STR_INVALID_PAUSE_COMMAND);
 					return false;
 				}
 				
@@ -152,7 +152,8 @@ namespace GpioInit
 			case 'F':
 				return processPortCommand(cmd, len, errors_only);
 			default:
-				reportGpioError("Error parsing init string, bad character");
+				reportGpioErrorP(STR_ERROR_PARSING_INIT_STRING);
+				console::printP(STR_BAD_CHAR);
 				return false; // error, abort
 		}
 	
@@ -177,7 +178,8 @@ namespace GpioInit
 				cmdlen++;
 				if(cmdlen > 8)
 				{
-					reportGpioError("Error parsing init string, command too long (pos = ");
+					reportGpioErrorP(STR_ERROR_PARSING_INIT_STRING);
+					console::printP(STR_CMD_TOO_LONG_POS);
 					console::printNumber(index);
 					console::println(")");
 					return false;

@@ -3,13 +3,16 @@
  *
  */
 
-#include "usb.h"
+#include "usb_util.h"
 #include "extdata.h"
 #include "console.h"
 #include "wacom_usb.h"
-#include "pen_events.h"
-#include "tables.h"
+#include "pen_event.h"
+#include "pen_data_transform.h"
+#include "strings.h"
 #include "debugproc.h"
+
+#define WACOM_PEN_ENDPOINT	1
 
 namespace WacomUsb
 {
@@ -47,7 +50,7 @@ namespace WacomUsb
 		};
 	} protocol4_packet;
 
-	bool send_protocol4_packet(Pen::PenEvent& penEvent)
+	void send_protocol4_packet(Pen::PenEvent& penEvent)
 	{
 		bool shouldfill = false;
 		// copy event for direct access (TODO: does that make a difference?)
@@ -61,9 +64,14 @@ namespace WacomUsb
 
 		if(protocol4_packet.inrange)
 		{
-			protocol4_packet.x = Pen::compute_x_position(penEvent.x);
-			protocol4_packet.y = Pen::compute_y_position(penEvent.y);
-			protocol4_packet.pressure = Pen::compute_pressure(penEvent.pressure);
+			PenDataTransform::XformedData xformed;
+
+			PenDataTransform::transform_pen_data(penEvent, xformed,
+								false); // no tilt
+
+			protocol4_packet.x = xformed.x;
+			protocol4_packet.y = xformed.y;
+			protocol4_packet.pressure = xformed.pressure;
 			protocol4_packet.touch = penEvent.touch;
 			protocol4_packet.eraser = penEvent.eraser;
 			protocol4_packet.button0 = penEvent.button0;
@@ -112,9 +120,7 @@ namespace WacomUsb
 		}
 */
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
-			usb_rawhid_send(protocol4_packet.buffer, 8, RAWHID_TX_ENDPOINT, 50);
-
-		return shouldfill;
+			UsbUtil::send_packet_fill_idle_time(protocol4_packet.buffer, 8, WACOM_PEN_ENDPOINT, 50);
 	}
 
 	//-----------------------------------------------------------------
@@ -150,7 +156,7 @@ namespace WacomUsb
 		};
 	} bamboo_pen_packet;
 
-	bool send_bamboo_pen_packet(Pen::PenEvent& penEvent)
+	void send_bamboo_pen_packet(Pen::PenEvent& penEvent)
 	{
 		bool shouldfill = false;
 		bamboo_pen_packet.hid_identifier = 0x02;
@@ -162,9 +168,14 @@ namespace WacomUsb
 
 		if(bamboo_pen_packet.inrange)
 		{
-			bamboo_pen_packet.x = Pen::compute_x_position(penEvent.x);
-			bamboo_pen_packet.y = Pen::compute_y_position(penEvent.y);
-			bamboo_pen_packet.pressure = Pen::compute_pressure(penEvent.pressure);
+			PenDataTransform::XformedData xformed;
+
+			PenDataTransform::transform_pen_data(penEvent, xformed,
+								false); // no tilt
+
+			bamboo_pen_packet.x = xformed.x;
+			bamboo_pen_packet.y = xformed.y;
+			bamboo_pen_packet.pressure = xformed.pressure;
 			bamboo_pen_packet.proximity = penEvent.proximity;
 			bamboo_pen_packet.touch = penEvent.touch;
 			bamboo_pen_packet.eraser = penEvent.eraser;
@@ -219,9 +230,7 @@ namespace WacomUsb
 		}
 
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
-			usb_rawhid_send(bamboo_pen_packet.buffer, 9, RAWHID_TX_ENDPOINT, 50);
-
-		return shouldfill;
+			UsbUtil::send_packet_fill_idle_time(bamboo_pen_packet.buffer, 9, WACOM_PEN_ENDPOINT, 50);
 	}
 
 	struct bamboo_touch_struct
@@ -236,7 +245,7 @@ namespace WacomUsb
 		};
 	} bamboo_touch_packet;
 
-	void send_bamboo_touch_packet(Pen::TouchEvent& touchEvent)
+	void send_bamboo_touch_packet(Touch::TouchEvent& touchEvent)
 	{
 		if(!touchEvent.touch)
 		{
@@ -250,7 +259,7 @@ namespace WacomUsb
 		}
 
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
-			usb_rawhid_send(bamboo_touch_packet.buffer, 20, RAWHID_TX_ENDPOINT, 50);
+			UsbUtil::send_packet(bamboo_touch_packet.buffer, 20, WACOM_PEN_ENDPOINT, 50);
 	}
 
 	//-----------------------------------------------------------------
@@ -323,7 +332,7 @@ namespace WacomUsb
 
 	static bool currentlyInRange = false;
 
-	bool send_protocol5_packet(Pen::PenEvent& penEvent)
+	static void do_send_protocol5_packet(Pen::PenEvent& penEvent)
 	{
 		bool shouldfill = false;
 
@@ -345,21 +354,22 @@ namespace WacomUsb
 				protocol5_packet.bit6 = 1;
 				protocol5_packet.bit7 = 1;
 
-				uint16_t v = Pen::compute_x_position(penEvent.x);
-				protocol5_packet.x_high = ((v >> 8) & 0xff);
-				protocol5_packet.x_low = (v & 0xff);
+				PenDataTransform::XformedData xformed;
 
-				v = Pen::compute_y_position(penEvent.y);
-				protocol5_packet.y_high = ((v >> 8) & 0xff);
-				protocol5_packet.y_low = (v & 0xff);
+				PenDataTransform::transform_pen_data(penEvent, xformed,
+									true); // with tilt
 
-				v = Pen::compute_pressure(penEvent.pressure);
+				protocol5_packet.x_high = ((xformed.x >> 8) & 0xff);
+				protocol5_packet.x_low = (xformed.x & 0xff);
 
-				uint8_t tiltx = penEvent.tilt_x + 0x40;
-				uint8_t tilty = penEvent.tilt_y + 0x40;
+				protocol5_packet.y_high = ((xformed.y >> 8) & 0xff);
+				protocol5_packet.y_low = (xformed.y & 0xff);
 
-				protocol5_packet.byte6 = (v >> 2) & 0xFF;
-				protocol5_packet.byte7 = ((v & 0x3) << 6) | ((tiltx >> 1) & 0x3F);
+				uint8_t tiltx = xformed.tilt_x + 0x40;
+				uint8_t tilty = xformed.tilt_y + 0x40;
+
+				protocol5_packet.byte6 = (xformed.pressure >> 2) & 0xFF;
+				protocol5_packet.byte7 = ((xformed.pressure & 0x3) << 6) | ((tiltx >> 1) & 0x3F);
 				protocol5_packet.byte8 = ((tiltx << 7) & 0x80) | ( tilty & 0x7F);
 
 				protocol5_packet.distance = 0x0D;  // we must be getting this value from ADB or Serial tablets, no??
@@ -385,8 +395,8 @@ namespace WacomUsb
 					console::printHex(protocol5_packet.byte8,2);
 					console::println("]");
 				}
-
-*/			}
+*/
+			}
 			else
 			{
 				currentlyInRange = true;
@@ -417,7 +427,7 @@ namespace WacomUsb
 
 				if(console::console_enabled)
 				{
-					console::print("[USB Packet - In Range packet, eraser=");
+					console::printP(STR_USB_PACKET_IN_RANGE_PACKET_ERASER);
 					console::printbit(penEvent.eraser);
 					console::println("]");
 				}
@@ -443,7 +453,7 @@ namespace WacomUsb
 
 			if(console::console_enabled)
 			{
-				console::println("[USB Packet - Out of range packet (all zeros)]");
+				console::printlnP(STR_USB_PACKET_OUT_OF_RANGE_PACKET_ALL_ZEROS);
 			}
 
 			DebugProc::proxOutTrigger();
@@ -451,13 +461,61 @@ namespace WacomUsb
 		else
 		{
 			// invalid state -- do not send anything
-			return false;
+			return;
 		}
 
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
-			usb_rawhid_send(protocol5_packet.buffer, 10, RAWHID_TX_ENDPOINT, 50);
+			UsbUtil::send_packet_fill_idle_time(protocol5_packet.buffer, 10, WACOM_PEN_ENDPOINT, 50);
+	}
 
-		return shouldfill;
+	bool in_special_operation = false;
+	bool special_op_inrange_state = false;
+
+	void send_protocol5_packet(Pen::PenEvent& penEvent)
+	{
+		if(in_special_operation)
+			return; // already in a special operation!
+
+		do_send_protocol5_packet(penEvent);
+	}
+
+	/**
+	 * get the device out of proximity momentarily
+	 */
+	void begin_special_operation_protocol5()
+	{
+		if(in_special_operation)
+			return;	// already in a special operation!
+
+		in_special_operation = true;
+		special_op_inrange_state = currentlyInRange;
+
+		if(currentlyInRange)
+		{
+			Pen::PenEvent penEvent;
+
+			penEvent.proximity = false;
+
+			do_send_protocol5_packet(penEvent);
+		}
+	}
+
+	/**
+	 * return to the state before the device was out of prox momentarily
+	 */
+	void end_special_operation_protocol5()
+	{
+		if(!in_special_operation)
+			return;	// was not in a special operation
+
+		in_special_operation = false;
+
+		if(special_op_inrange_state)
+		{
+			// do nothing. Let the next pen movement re-initialize the status
+		}
+
+		special_op_inrange_state = false;
 	}
 }
 

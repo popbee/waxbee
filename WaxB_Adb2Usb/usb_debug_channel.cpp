@@ -9,7 +9,6 @@
 #include <avr/interrupt.h>
 #include "usb.h"
 #include "led.h"
-#include "tables.h"
 #include "usb_debug_channel.h"
 
 // the time remaining before we transmit any partially full

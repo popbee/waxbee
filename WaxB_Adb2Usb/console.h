@@ -9,6 +9,7 @@
 #define CONSOLE_H_
 
 #include <stdint.h>
+#include <avr/pgmspace.h>
 
 namespace console
 {
@@ -17,6 +18,12 @@ namespace console
 	void init();
 
 	void print(const char* str);
+
+	/** @param progmem_str address of string stored in 'program memory'. */
+	void printP(prog_char* progmem_str);
+	/** @param progmem_str address of string stored in 'program memory'. */
+	void printlnP(prog_char* progmem_str);
+
 	void println();
 	void println(const char* str);
 	void print(const char c);

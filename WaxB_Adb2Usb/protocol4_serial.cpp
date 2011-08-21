@@ -12,7 +12,8 @@
 #include "protocol4_serial.h"
 #include "serial.h"
 #include "console.h"
-#include "pen_events.h"
+#include "strings.h"
+#include "pen_event.h"
 #include "wacom_usb.h"
 #include <util/delay.h>
 
@@ -28,7 +29,7 @@
 					// Note: other tablets with Protocol 4 includes:  PL-*,ET-*,CT-*,KT-*
 
 #define ROM_VERSION_UNSUPPORTED	0	// unknown/undefined/V1.1 or earlier
-#define ROM_VERSION_1_2		2  	// seen a UD-1218-R version 1.2
+#define ROM_VERSION_1_2		2  	// lots of UD-1218-R at version 1.2
 #define ROM_VERSION_1_3		3  	//
 #define ROM_VERSION_1_4		4  	//
 #define ROM_VERSION_1_5		5 	// tested with V1.5-4
@@ -125,7 +126,7 @@ namespace protocol4_serial
 
 		if(console::console_enabled)
 		{
-			console::print("Serial Tablet - ");
+			console::printP(STR_SERIAL_TABLET_);
 			for(uint8_t i=2;i<datalen;i++)
 				console::print(buffer[i]);
 			console::println();
@@ -133,19 +134,23 @@ namespace protocol4_serial
 			switch(tabletType)
 			{
 				case TABLET_TYPE_UNSUPPORTED:
-					console::print("Unsupported");
+					console::printP(STR_UNSUPPORTED);
 					break;
 				case TABLET_TYPE_ULTRAPAD:
-					console::print("UltraPad");
+					console::printP(STR_ULTRAPAD);
 					break;
 			}
 
-			console::print(" - ROM Version ");
+			console::printP(STR_ROM_VERSION);
 
 			switch(romVersion)
 			{
 				case ROM_VERSION_UNSUPPORTED:
-					console::print("Unsupported");
+					console::printP(STR_UNSUPPORTED);
+					break;
+				case ROM_VERSION_1_2:
+					console::print("1.2");
+					break;
 				case ROM_VERSION_1_3:
 					console::print("1.3");
 					break;
@@ -170,7 +175,7 @@ namespace protocol4_serial
 	}
 
 	/**
-	 * set port speed to 19200, set max resolution, set Pnp Off. They t
+	 * set port speed to 19200, set max resolution, set Pnp Off.
 	 */
 	void enableFeatures()
 	{
@@ -191,7 +196,7 @@ namespace protocol4_serial
 		 * 0  absolute mode
 		 * 11 maximum  (10 = 100pps)
 		 *
-		 * 11 max resolution (1270,1270)
+		 * 11 max resolution (1270,1270) but 2540,2540 is set in the init string further down.
 		 * 0  upper left origin
 		 * 0  no out of range data
 		 * 10 CRLF line terminator
@@ -207,11 +212,11 @@ namespace protocol4_serial
 		 * 0  1234 - BitPad II cursor data
 		 * 0  remote mode OFF
 		 *
-		 * 002 - increment value (IN)
+		 * 000 - increment value (IN)
 		 * 00  - max pen reporting speed
 		 * 2540,2540 - dpi settings
 		 */
-		serial::sendString("~*F203C810,002,00,2540,2540\r");
+		serial::sendString("~*F203C810,000,00,2540,2540\r");
 
 		if(romVersion >= ROM_VERSION_1_4)
 			packet_len = WACOM_PKGLEN_PROTOCOL4_TILT;
@@ -268,6 +273,9 @@ namespace protocol4_serial
 						// test output max coords.
 //						serial::sendString("\r\r~C\r");
 
+						// read back settings.
+//						serial::sendString("\r\r~R\r");
+
 						serial::sendString("\r\rST\r");  // Start transmitting data
 
 						itsCurState = packet;
@@ -279,7 +287,7 @@ namespace protocol4_serial
 				if(data & 0x80)
 				{
 //					console::println();
-					console::print("*");
+//					console::print("*");
 
 					if(datalen > 0)
 						console::print("(?!)");
@@ -291,7 +299,7 @@ namespace protocol4_serial
 					return;		// wait for the first valid byte
 				}
 
-				console::printHex(data, 2);
+//				console::printHex(data, 2);
 
 				if(datalen < packet_len)
 				{
@@ -356,17 +364,17 @@ namespace protocol4_serial
 								eraser_mode = false;
 							}
 
-							console::print(" - Enter prox =");
+							console::printP(STR_ENTER_PROX);
 							if(eraser_mode)
-								console::println("Eraser");
+								console::printlnP(STR_ERASER);
 							else
-								console::println("Pen");
+								console::printlnP(STR_PEN);
 							console::println();
 						}
 					}
 					else if(!penEvent.proximity)
 					{
-						console::print(" - Exit prox");
+						console::printP(STR_EXIT_PROX);
 						console::println();
 						resetToolState();
 					}
@@ -407,7 +415,7 @@ namespace protocol4_serial
 
 //					console::println();
 
-					Pen::send_pen_event(penEvent);
+					Pen::input_pen_event(penEvent);
 				}
 				break;
 			}
@@ -416,7 +424,7 @@ namespace protocol4_serial
 
 	void init()
 	{
-		console::print("protocol4_serial::init()\n");
+		console::printP(STR_PROTOCOL4_SERIAL_INIT);
 
 		resetToolState();
 

@@ -1,7 +1,7 @@
 /*
- * wacom_events.cpp
+ * pen_data_transform.cpp
  *
- *  Created on: 2010-12-26
+ *  Created on: 2011-08-09
  *      Author: Bernard
  */
 
@@ -9,18 +9,15 @@
 
 #include "console.h"
 #include "extdata.h"
-#include "pen_events.h"
-#include "wacom_usb.h"
-#include "debugproc.h"
+#include "pen_data_transform.h"
 
-/** This is the common portion between the input tablet and the output tablet.
+/** Module that converts x/y coordinates and all other pen data between the native tablet and the usb tablet.
+ *  The tablet rotation setting is taken into account to "rotate" everything accordingly. (e.g. x, y, tilt, z-rotation, etc.)
  *
- * Pen::init() needs to be called at startup
+ * PenDataTransform::init() needs to be called at startup
  */
-namespace Pen
+namespace PenDataTransform
 {
-	static uint8_t	usbProtocol;
-
 	static uint16_t	slaveXMin;
 	static uint16_t	slaveXMax;
 	static uint16_t	slaveYMin;
@@ -46,8 +43,6 @@ namespace Pen
 
 	void init()
 	{
-		usbProtocol = extdata_getValue8(EXTDATA_USB_PROTOCOL);
-
 		slaveXMin = extdata_getValue16(EXTDATA_SLAVE_X_MIN);
 		slaveXMax = extdata_getValue16(EXTDATA_SLAVE_X_MAX);
 		slaveYMin = extdata_getValue16(EXTDATA_SLAVE_Y_MIN);
@@ -286,67 +281,22 @@ namespace Pen
 		return scale_uint16(sourcevalue, slavePressureMax, usbPressureMax);
 	}
 
-	static PenEvent fillerPenEvent;
-	static uint8_t filler_countdown_5ms = 0;
-
-	void timer_5ms_intr()
+	void transform_pen_data(Pen::PenEvent& penEvent, PenDataTransform::XformedData& xformed, bool withtilt)
 	{
-		if(filler_countdown_5ms > 1)
-			filler_countdown_5ms--;
-	}
+		xformed.x = compute_x_position(penEvent.x);
+		xformed.y = compute_y_position(penEvent.y);
+		xformed.pressure = compute_pressure(penEvent.pressure);
 
-	void send_pen_event(Pen::PenEvent& penEvent)
-	{
-		bool shouldfill = false;
-
-		switch(usbProtocol)
+/*		console::print("\npenEvent.x = ");
+		console::printNumber(penEvent.x);
+		console::print(", xformed.x = ");
+		console::printNumber(xformed.x);
+		console::println();
+*/
+		if(withtilt)
 		{
-			case EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL4:
-				shouldfill = WacomUsb::send_protocol4_packet(penEvent);
-				break;
-			case EXTDATA_USB_PROTOCOL_WACOM_BAMBOO_TOUCH:
-				shouldfill = WacomUsb::send_bamboo_pen_packet(penEvent);
-				break;
-			case EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL5:
-				shouldfill = WacomUsb::send_protocol5_packet(penEvent);
-				break;
-			default:
-				break;
-		}
-
-		if(shouldfill)
-		{
-			fillerPenEvent = penEvent;
-
-			filler_countdown_5ms = extdata_getValue16(EXTDATA_IDLE_TIME_LIMIT_MS) / 5;
-		}
-		else
-			filler_countdown_5ms = 0;
-	}
-
-	bool touchEnabled()
-	{
-		return usbProtocol == EXTDATA_USB_PROTOCOL_WACOM_BAMBOO_TOUCH;
-	}
-
-	void send_touch_event(Pen::TouchEvent& touchEvent)
-	{
-		switch(usbProtocol)
-		{
-			case EXTDATA_USB_PROTOCOL_WACOM_BAMBOO_TOUCH:
-				WacomUsb::send_bamboo_touch_packet(touchEvent);
-				break;
-			default:
-				break;
-		}
-	}
-
-	void fill()
-	{
-		if(filler_countdown_5ms == 1)
-		{
-			filler_countdown_5ms = 0;
-			send_pen_event(fillerPenEvent);
+			xformed.tilt_x = penEvent.tilt_x;
+			xformed.tilt_y = penEvent.tilt_y;
 		}
 	}
 }

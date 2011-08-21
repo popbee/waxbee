@@ -7,6 +7,8 @@
  *      Author: Bernard
  */
 
+#include <avr/pgmspace.h>
+
 #include "extdata.h"
 #include "console.h"
 #include "usb_debug_channel.h"
@@ -26,6 +28,36 @@ namespace console
 			console_enabled = true;
 	}
 
+	static void do_print(char c)
+	{
+		if(usb_output)
+			usb_debug::putchar(c);
+	}
+
+	/** @param progmem_str address of string stored in 'program memory'. */
+	void printP(prog_char* progmem_str)
+	{
+		if(!console_enabled)
+			return;
+
+		uint8_t c = pgm_read_byte(progmem_str);
+
+		while(c!=0)
+		{
+			do_print(c);
+
+			progmem_str++;
+			c = pgm_read_byte(progmem_str);
+		}
+	}
+
+	/** @param progmem_str address of string stored in 'program memory'. */
+	void printlnP(prog_char* progmem_str)
+	{
+		printP(progmem_str);
+		println();
+	}
+
 	void print(const char* str)
 	{
 		if(!console_enabled)
@@ -34,7 +66,7 @@ namespace console
 		char c = *str;
 		while (c != 0)
 		{
-			print(c);
+			do_print(c);
 			str++;
 			c = *str;
 		}
@@ -51,8 +83,7 @@ namespace console
 		if(!console_enabled)
 			return;
 
-		if(usb_output)
-			usb_debug::putchar(c);
+		do_print(c);
 	}
 
 	void println()
@@ -73,9 +104,9 @@ namespace console
 		for(int i=0;i<8;i++)
 		{
 			if(number & 0x80)
-				print('1');
+				do_print('1');
 			else
-				print('0');
+				do_print('0');
 
 			number <<= 1;
 		}
@@ -88,13 +119,13 @@ namespace console
 
 		if (number == 0)
 		{
-			print('0');
+			do_print('0');
 			return;
 		}
 
 		if(number < 0)
 		{
-			print('-');
+			do_print('-');
 			number = -number;
 		}
 
@@ -109,7 +140,7 @@ namespace console
 
 		while (i < sizeof(buf))
 		{
-			print((char)('0' + buf[i++]));
+			do_print((char)('0' + buf[i++]));
 		}
 	}
 
@@ -127,15 +158,15 @@ namespace console
 			return;
 
 		if(hexdigits >= 4)
-			print(hexDigit((number>>12) & 0xf));
+			do_print(hexDigit((number>>12) & 0xf));
 
 		if(hexdigits >= 3)
-			print(hexDigit((number>>8) & 0xf));
+			do_print(hexDigit((number>>8) & 0xf));
 
 		if(hexdigits >= 2)
-			print(hexDigit((number>>4) & 0xf));
+			do_print(hexDigit((number>>4) & 0xf));
 
-		print(hexDigit(number & 0xf));
+		do_print(hexDigit(number & 0xf));
 	}
 
 	void flush()

@@ -9,6 +9,8 @@
 #define EXTDATA_H_
 
 #include <avr/pgmspace.h>
+#include <stdint.h>
+#include "avr_util.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -26,7 +28,13 @@ uint8_t	 extdata_getValue8(uint8_t index);
 uint8_t  extdata_getLength8(uint8_t index);
 uint16_t extdata_getValue16(uint8_t index);
 uint16_t extdata_getLength16(uint8_t index);
+
+/** returns a 16 bit address in program memory */
 uint16_t extdata_getAddress(uint8_t index);
+
+#define PSTR2(s) (__extension__({static prog_char __c[] = (s); &__c[0];}))
+
+void printP(prog_char str[]);
 
 // following file is generated
 #include "extdata_gen.h"

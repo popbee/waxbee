@@ -30,15 +30,21 @@
 #include "usb.h"
 #include "usb_priv.h"
 #include "led.h"
-#include "tables.h"
+#include "strings.h"
 #include "extdata.h"
 #include "usb_debug_channel.h"
 
-/**************************************************************************
- *
- *  Variables - these are the only non-stack RAM usage
- *
- **************************************************************************/
+#define RAWHID_INTERFACE	0
+#define RAWHID_RX_SIZE		8	// receive packet size
+
+#if defined(__AVR_AT90USB162__)
+#define RAWHID_TX_BUFFER	EP_SINGLE_BUFFER
+#define RAWHID_RX_BUFFER	EP_SINGLE_BUFFER
+#else
+#define RAWHID_TX_BUFFER	EP_DOUBLE_BUFFER
+#define RAWHID_RX_BUFFER	EP_DOUBLE_BUFFER
+#endif
+
 
 // zero when we are not configured, non-zero when enumerated
 volatile uint8_t usb_configuration = 0;
@@ -124,7 +130,7 @@ bool usb_configured(void)
  *
  * Note: size cannot be larger than the endpoint configured size (data will be truncated if so).
  */
-int8_t usb_rawhid_send(const uint8_t *buffer, uint8_t size, uint8_t endpoint, uint8_t timeout)
+int8_t usb_send_packet(const uint8_t *buffer, uint8_t size, uint8_t endpoint, uint8_t timeout)
 {
 	uint8_t intr_state;
 
@@ -173,7 +179,6 @@ int8_t usb_rawhid_send(const uint8_t *buffer, uint8_t size, uint8_t endpoint, ui
 //
 ISR(USB_GEN_vect)
 {
-//	sbi(PORTC,6);
 	//===================================
 	// USB Device Interrupts
 	//===================================
@@ -216,7 +221,6 @@ ISR(USB_GEN_vect)
 
 		usb_debug::start_of_frame_interrupt();
 	}
-//	cbi(PORTC,6);
 }
 
 
@@ -312,8 +316,8 @@ static inline bool handleStandardEndpoint0()
 					switch(req.value_low)
 					{
 						case 0:
-							desc_addr = (uint16_t)string0;
-							desc_length = sizeof(string0);
+							desc_addr = (uint16_t)usbdescriptor_string0;
+							desc_length = sizeof(usbdescriptor_string0);
 							break;
 						case 1:
 							desc_addr = extdata_getAddress(EXTDATA_USB_STRING1);

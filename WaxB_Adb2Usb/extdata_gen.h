@@ -4,7 +4,7 @@
 
 #define EXTDATA_USB_STRING_COUNT 5
 
-#define EXTDATA_COUNT 44
+#define EXTDATA_COUNT 46
 
 #define EXTDATA_VERSION 4
 
@@ -60,7 +60,13 @@
 #define EXTDATA_USB_X_ANCHOR_MAX	24	// uint16 - USB Maximum X anchor position (right) (0 to disable)
 #define EXTDATA_USB_Y_ANCHOR_MAX	25	// uint16 - USB Maximum Y anchor position (bottom) (0 to disable)
 #define EXTDATA_USB_PRESSURE_MAX	26	// uint16 - USB Stylus Pressure maximum
-#define EXTDATA_SLAVE_PROTOCOL	27	// enum - Slave (ADB/Serial side) Protocol
+#define EXTDATA_USB_BUTTON_ENCODING	27	// enum - USB Buttons Encoding
+
+// EXTDATA_USB_BUTTON_ENCODING should contain one of:
+#define EXTDATA_USB_BUTTON_ENCODING_WACOM_INTUOS2_1218	1	// Intuos2 12x18 menu strip (1..12)
+#define EXTDATA_USB_BUTTON_ENCODING_NONE	0	// No button support
+
+#define EXTDATA_SLAVE_PROTOCOL	28	// enum - Slave (ADB/Serial side) Protocol
 
 // EXTDATA_SLAVE_PROTOCOL should contain one of:
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_PROTOCOL5	3	// Wacom Protocol 5
@@ -70,7 +76,7 @@
 #define EXTDATA_SLAVE_PROTOCOL_TOPAZ	6	// Topaz tablet
 #define EXTDATA_SLAVE_PROTOCOL_WACOM_ADB	1	// Wacom ADB
 
-#define EXTDATA_SLAVE_ORIENTATION	28	// enum - Slave Tablet Orientation
+#define EXTDATA_SLAVE_ORIENTATION	29	// enum - Slave Tablet Orientation
 
 // EXTDATA_SLAVE_ORIENTATION should contain one of:
 #define EXTDATA_SLAVE_ORIENTATION_ROTATED_LEFT	3	// Rotated Left
@@ -78,35 +84,36 @@
 #define EXTDATA_SLAVE_ORIENTATION_ROTATED_RIGHT	1	// Rotated Right
 #define EXTDATA_SLAVE_ORIENTATION_NORMAL	0	// Standard Orientation
 
-#define EXTDATA_SLAVE_X_MIN	29	// uint16 - Slave Minimum X position (left)
-#define EXTDATA_SLAVE_Y_MIN	30	// uint16 - Slave Minimum Y position (top)
-#define EXTDATA_SLAVE_X_MAX	31	// uint16 - Slave Maximum X position (right)
-#define EXTDATA_SLAVE_Y_MAX	32	// uint16 - Slave Maximum Y position (bottom)
-#define EXTDATA_SLAVE_X_ANCHOR_MIN	33	// uint16 - Slave Minimum X anchor position (left) (0 to disable)
-#define EXTDATA_SLAVE_Y_ANCHOR_MIN	34	// uint16 - Slave Minimum Y anchor position (top) (0 to disable)
-#define EXTDATA_SLAVE_X_ANCHOR_MAX	35	// uint16 - Slave Maximum X anchor position (right) (0 to disable)
-#define EXTDATA_SLAVE_Y_ANCHOR_MAX	36	// uint16 - Slave Maximum Y anchor position (bottom) (0 to disable)
-#define EXTDATA_SLAVE_PRESSURE_MAX	37	// uint16 - Slave Stylus Pressure maximum
-#define EXTDATA_CPU_CORE_CLOCK	38	// enum - CPU core clock
+#define EXTDATA_SLAVE_X_MIN	30	// uint16 - Slave Minimum X position (left)
+#define EXTDATA_SLAVE_Y_MIN	31	// uint16 - Slave Minimum Y position (top)
+#define EXTDATA_SLAVE_X_MAX	32	// uint16 - Slave Maximum X position (right)
+#define EXTDATA_SLAVE_Y_MAX	33	// uint16 - Slave Maximum Y position (bottom)
+#define EXTDATA_SLAVE_X_ANCHOR_MIN	34	// uint16 - Slave Minimum X anchor position (left) (0 to disable)
+#define EXTDATA_SLAVE_Y_ANCHOR_MIN	35	// uint16 - Slave Minimum Y anchor position (top) (0 to disable)
+#define EXTDATA_SLAVE_X_ANCHOR_MAX	36	// uint16 - Slave Maximum X anchor position (right) (0 to disable)
+#define EXTDATA_SLAVE_Y_ANCHOR_MAX	37	// uint16 - Slave Maximum Y anchor position (bottom) (0 to disable)
+#define EXTDATA_SLAVE_PRESSURE_MAX	38	// uint16 - Slave Stylus Pressure maximum
+#define EXTDATA_SLAVE_ACTIVE_AREAS	39	// binary - Slave Active Area
+#define EXTDATA_CPU_CORE_CLOCK	40	// enum - CPU core clock
 
 // EXTDATA_CPU_CORE_CLOCK should contain one of:
 #define EXTDATA_CPU_CORE_CLOCK_F_8MHZ	1	// 8 Mhz - half speed
 #define EXTDATA_CPU_CORE_CLOCK_F_16MHZ	0	// 16 Mhz - full speed
 
-#define EXTDATA_INITIAL_SERIAL_PORT_SPEED	39	// enum - Initial Serial Port Speed
+#define EXTDATA_INITIAL_SERIAL_PORT_SPEED	41	// enum - Initial Serial Port Speed
 
 // EXTDATA_INITIAL_SERIAL_PORT_SPEED should contain one of:
 #define EXTDATA_INITIAL_SERIAL_PORT_SPEED_BAUD_9600	0	// 9600 Baud, N-8-1
 #define EXTDATA_INITIAL_SERIAL_PORT_SPEED_BAUD_38400	2	// 38400 Baud, N-8-1
 #define EXTDATA_INITIAL_SERIAL_PORT_SPEED_BAUD_19200	1	// 19200 Baud, N-8-1
 
-#define EXTDATA_SERIAL_PORT_SPEED	40	// enum - Serial Port Speed
+#define EXTDATA_SERIAL_PORT_SPEED	42	// enum - Serial Port Speed
 
 // EXTDATA_SERIAL_PORT_SPEED should contain one of:
 #define EXTDATA_SERIAL_PORT_SPEED_BAUD_9600	0	// 9600 Baud, N-8-1
 #define EXTDATA_SERIAL_PORT_SPEED_BAUD_38400	2	// 38400 Baud, N-8-1
 #define EXTDATA_SERIAL_PORT_SPEED_BAUD_19200	1	// 19200 Baud, N-8-1
 
-#define EXTDATA_IDLE_TIME_LIMIT_MS	41	// uint16 - Idle time limit (ms)
-#define EXTDATA_GPIO_INIT	42	// utf8string - GPIO Init string
-#define EXTDATA_DEBUG_DATA	43	// binary - Debug Data
+#define EXTDATA_IDLE_TIME_LIMIT_MS	43	// uint16 - Idle time limit (ms)
+#define EXTDATA_GPIO_INIT	44	// utf8string - GPIO Init string
+#define EXTDATA_DEBUG_DATA	45	// binary - Debug Data

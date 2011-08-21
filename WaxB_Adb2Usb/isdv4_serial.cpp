@@ -12,8 +12,10 @@
 #include "isdv4_serial.h"
 #include "serial.h"
 #include "console.h"
-#include "pen_events.h"
+#include "pen_event.h"
 #include "wacom_usb.h"
+#include "strings.h"
+
 #include <util/delay.h>
 
 #define WACOM_PKGLEN_TPC 	 9
@@ -99,7 +101,7 @@ namespace isdv4_serial
 
 					uint16_t version = ( buffer[10] | (buffer[9] << 7) );
 
-					console::print("\nPressure Max=");
+					console::printP(STR_PRESSURE_MAX);
 					console::printNumber(maxZ);
 					console::print(", X Max=");
 					console::printNumber(maxX);
@@ -108,15 +110,15 @@ namespace isdv4_serial
 
 					if(hasTilt)
 					{
-						console::print(", Has Tilt: Tilt X Max=");
+						console::printP(STR_HAS_TILT_TILT_X_MAX);
 						console::printNumber(maxtiltX);
-						console::print(", Tilt Y Max=");
+						console::printP(STR_TILT_Y_MAX);
 						console::printNumber(maxtiltY);
 					}
 					else
-						console::print(", No Tilt");
+						console::printP(STR_NO_TILT);
 
-					console::print(", Version=");
+					console::printP(STR_VERSION);
 					console::printNumber(version);
 					console::println("");
 
@@ -227,7 +229,7 @@ namespace isdv4_serial
 
 					penEvent.rotation_z = 0;
 
-					Pen::send_pen_event(penEvent);
+					Pen::input_pen_event(penEvent);
 				}
 				break;
 			}
@@ -236,7 +238,7 @@ namespace isdv4_serial
 
 	void init()
 	{
-		console::print("isdv4_serial::init()\n");
+		console::printlnP(STR_ISDV4_SERIAL_INIT);
 
 		resetToolState();
 

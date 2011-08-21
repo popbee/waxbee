@@ -136,6 +136,20 @@ namespace serial
 		}
 	}
 
+	/** blocking call
+	 * @param progmem_data points to a program memory location */
+	void sendStringP(prog_char* progmem_data)
+	{
+		uint8_t c = pgm_read_byte(progmem_data);
+
+		while(c != 0)
+		{
+			sendByte(c);
+			progmem_data++;
+			c = pgm_read_byte(progmem_data);
+		}
+	}
+
 	/** must be called from the main loop, will return quickly if nothing to do */
 	void serialPortProcessing()
 	{

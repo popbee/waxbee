@@ -12,8 +12,10 @@
 #include "topaz_serial.h"
 #include "serial.h"
 #include "console.h"
-#include "pen_events.h"
+#include "pen_event.h"
 #include "wacom_usb.h"
+#include "strings.h"
+
 #include <util/delay.h>
 
 #define TOPAZ_PACKET	5
@@ -99,7 +101,7 @@ namespace topaz_serial
 					penEvent.tilt_y = 0;
 					penEvent.rotation_z = 0;
 
-					Pen::send_pen_event(penEvent);
+					Pen::input_pen_event(penEvent);
 				}
 				break;
 			}
@@ -108,7 +110,7 @@ namespace topaz_serial
 
 	void init()
 	{
-		console::print("topaz_serial::init()\n");
+		console::printlnP(STR_TOPAZ_SERIAL_INIT);
 
 		serial::init(onSerialByteReceived);
 		serial::setNormalPortSpeed();

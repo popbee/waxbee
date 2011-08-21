@@ -32,45 +32,46 @@
 #include "adb_codec.h"
 #include "adb_controller.h"
 
-#include "tables.h"
 #include "usb.h"
 #include "led.h"
 #include "console.h"
 #include "extdata.h"
 #include "serial.h"
-#include "pen_events.h"
+#include "pen_event.h"
+#include "touch_event.h"
 #include "isdv4_serial.h"
 #include "protocol4_serial.h"
 #include "protocol5_serial.h"
 #include "topaz_serial.h"
 #include "gpioinit.h"
-#include "pen_events.h"
+#include "pen_data_transform.h"
 #include "frequency.h"
 #include "debugproc.h"
+#include "usb_util.h"
+#include "strings.h"
 
 #include <avr/pgmspace.h>
 
 void send_initial_event()
 {
 	Pen::PenEvent penEvent;
-	Pen::TouchEvent touchEvent;
+	Touch::TouchEvent touchEvent;
 
 	penEvent.proximity = 0;
 	penEvent.is_mouse = 0;
 
-	Pen::send_pen_event(penEvent);
+	Pen::input_pen_event(penEvent);
 
-	if(Pen::touchEnabled())
+	if(Touch::touchEnabled())
 	{
 		touchEvent.touch = false;
-		Pen::send_touch_event(touchEvent);
+		Touch::output_touch_event(touchEvent);
 	}
 }
 
 bool adb_tablet;
 bool serial_tablet;
 bool debug_processing;
-bool fill_processing; // extdata driven
 
 void error_condition(uint8_t code)
 {
@@ -112,7 +113,7 @@ ISR(TIMER0_OVF_vect)
 	TCNT0 = (0x100 - ((CPUCLOCK / TIMER0_PRESCALER_DIVIDER) / 200));
 
 	DebugProc::timer_5ms_intr();
-	Pen::timer_5ms_intr();
+	UsbUtil::timer_5ms_intr();
 }
 
 int main(void)
@@ -143,7 +144,6 @@ int main(void)
 
 	serial_tablet = extdata_getValue8(EXTDATA_SERIAL_PORT) == EXTDATA_SERIAL_PORT_SLAVE_DIGITIZER;
 	adb_tablet = extdata_getValue8(EXTDATA_ADB_PORT) == EXTDATA_ADB_PORT_SLAVE_DIGITIZER;
-	fill_processing = extdata_getValue16(EXTDATA_IDLE_TIME_LIMIT_MS) > 0;
 
 	if(adb_tablet)
 		ADB::setup();
@@ -173,6 +173,8 @@ int main(void)
 
 	console::init();
 
+	console::printlnP(STR_WAXBEE_WELCOME);
+
 	//------------------------------------
 	// custom GPIO initialization
 	//------------------------------------
@@ -185,6 +187,7 @@ int main(void)
 	}
 
 	Pen::init();
+	PenDataTransform::init();
 
 	debug_processing = DebugProc::init();
 
@@ -207,7 +210,6 @@ int main(void)
 				break;
 		}
 	}
-//        static double rad = 0;
 
 	// send a first packet to signify that there is no pen in proximity
 	send_initial_event();
@@ -224,8 +226,7 @@ int main(void)
         	if(serial_tablet)
         		serial::serialPortProcessing();
 
-        	if(fill_processing)
-        		Pen::fill(); // add more usb packets
+        	UsbUtil::main_loop(); // repeats usb packets to prevent idle time
 
         	if(debug_processing)
         		DebugProc::processing();

@@ -12,7 +12,8 @@
 #include "protocol5_serial.h"
 #include "serial.h"
 #include "console.h"
-#include "pen_events.h"
+#include "strings.h"
+#include "pen_event.h"
 #include "wacom_usb.h"
 #include <util/delay.h>
 
@@ -103,7 +104,7 @@ namespace protocol5_serial
 
 		if(console::console_enabled)
 		{
-			console::print("Serial Tablet - ");
+			console::printP(STR_SERIAL_TABLET);
 			for(uint8_t i=2;i<datalen;i++)
 				console::print(buffer[i]);
 			console::println();
@@ -111,13 +112,13 @@ namespace protocol5_serial
 			switch(tabletType)
 			{
 				case TABLET_TYPE_UNSUPPORTED:
-					console::print("Unsupported");
+					console::printP(STR_UNSUPPORTED);
 					break;
 				case TABLET_TYPE_INTUOS:
-					console::print("Intuos");
+					console::printP(STR_INTUOS);
 					break;
 				case TABLET_TYPE_INTUOS2:
-					console::print("Intuos2");
+					console::printP(STR_INTUOS2);
 					break;
 			}
 
@@ -296,7 +297,7 @@ namespace protocol5_serial
 						resetToolState();
 
 						penEvent.proximity = 0;
-						Pen::send_pen_event(penEvent);
+						Pen::input_pen_event(penEvent);
 					}
 					else if (((buffer[0] & 0xB8) == 0xA0) || ((buffer[0] & 0xBE) == 0xB4))
 					{
@@ -350,7 +351,7 @@ namespace protocol5_serial
 */
 						penEvent.touch = (buffer[3] & 0x08) ? 1:0; // shouldn't we look at the pressure instead?
 
-						Pen::send_pen_event(penEvent);
+						Pen::input_pen_event(penEvent);
 					}
 
 					// TODO: understand the extra logic from the linux driver (wacserial.c)
@@ -368,7 +369,7 @@ namespace protocol5_serial
 
 	void init()
 	{
-		console::print("protocol5_serial::init()\n");
+		console::printlnP(STR_PROTOCOL5_SERIAL_INIT);
 
 		resetToolState();
 

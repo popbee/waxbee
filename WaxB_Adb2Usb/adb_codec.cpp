@@ -28,6 +28,7 @@
 #include "avr_util.h"
 #include "console.h"
 #include "adb_codec.h"
+#include "strings.h"
 
 #include <util/delay.h>
 
@@ -782,7 +783,7 @@ namespace ADB
 				if(pulseTime < STOP2START_TIME_MIN_US)
 				{
 					errorAndResetDecoder(13); // invalid stop2start (too small)
-					console::print("stop2start time too small: ");
+					console::printP(STR_STOP2START_TIME_TOO_SMALL);
 					console::printNumber(pulseTime);
 					console::println(" us");
 					break;

@@ -34,6 +34,9 @@ namespace serial
 
 	void sendByte(uint8_t data);
 	void sendString(const char* data);
+	/** blocking call
+	 * @param progmem_data points to a program memory location */
+	void sendStringP(prog_char* progmem_data);
 	void flush();
 
 	void serialPortProcessing();
