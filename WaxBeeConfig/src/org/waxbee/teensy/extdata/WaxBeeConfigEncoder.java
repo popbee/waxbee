@@ -59,9 +59,10 @@ public class WaxBeeConfigEncoder
 		if(itsReport != null)
 		{
 			itsReport.append("Firmware size augmented of " +
-					(itsFirmwareImage.getSpanSize() - image.getSpanSize()) + " bytes, ");
+					(itsFirmwareImage.getSpanSize() - image.getSpanSize()) + " bytes:\n");
 
-			itsReport.append("Max location: 0x" + Integer.toString(image.getMaxLocation(), 16)+" -> 0x" + Integer.toString(itsFirmwareImage.getMaxLocation(), 16)+".\n");
+			itsReport.append("Original size: "+image.getMaxLocation()+" (0x" + Integer.toString(image.getMaxLocation(), 16)+")\n");
+			itsReport.append("Modified size: "+itsFirmwareImage.getMaxLocation()+" (0x" + Integer.toString(itsFirmwareImage.getMaxLocation(), 16)+")\n");
 		}
 		return itsFirmwareImage;
 	}

@@ -22,7 +22,10 @@ public class TeensyProgrammer
 
 	// Too bad halfkay does not return the MCU and/or some sort of board type.
 	// We could probably autodetect it by "trying" to upload stuff to the device.
-
+	//
+	// NOTE: The Teensy Loader software does some sort of CPU check when a .elf 
+	// file is present. Try to discover how that works.
+	
 	// Our Teensy is always an atmega32u4 (at least for now)
 	//
 	int itsCodeSize = 32256;
