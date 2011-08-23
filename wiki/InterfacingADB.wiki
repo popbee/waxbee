@@ -34,6 +34,6 @@ If you have a problem connecting, try running the Teensy loader application (fro
 
       Triple-check all your connections and that there is no "cross-overs", etc. A bad short circuit has the potential of permanently damaging the tablet, the Teensy or even your computer.
 
-  * Run the WaxBeeConfig tool, follow the instructions. 
+  * Run the WaxBee configuration tool, follow the instructions (read the bundled html for more help).
 
   * The Wacom driver of the emulated USB tablet can be installed/re-installed at any time. Always pick the latest drivers.
