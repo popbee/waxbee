@@ -1,0 +1,330 @@
+#------------------------------------------------------------------------------
+# WaxBee configuration
+#------------------------------------------------------------------------------
+NAME = "UD-1212-R to Intuos2 12x12"
+DESCRIPTION = "Converts an Ultrapad/ArtZII/DigitizerII 12x12 (UD-1212-R) to a USB Intuos2 (XD-1212-U)"
+SLAVE_TABLET_X_MAX = 30480
+SLAVE_TABLET_Y_MAX = 30480
+USB_TABLET_X_MAX = 30480
+USB_TABLET_Y_MAX = 31680
+
+# Valid choices for USB_PORT:
+# 0: DISABLED
+# 1: DIGITIZER
+# 2: DEBUG
+
+USB_PORT = 1
+
+# Valid choices for SERIAL_PORT:
+# 0: DISABLED
+# 1: SLAVE_DIGITIZER
+# 2: DEBUG
+
+SERIAL_PORT = 1
+
+# Valid choices for ADB_PORT:
+# 0: DISABLED
+# 1: SLAVE_DIGITIZER
+
+ADB_PORT = 0
+USB_DEVICEDESC = @[
+0x12,		# bLength
+0x1,		# bDescriptorType
+0x0,0x2,		# bcdUSB
+0x0,		# bDeviceClass
+0x0,		# bDeviceSubClass
+0x0,		# bDeviceProtocol
+0x8,		# bMaxPacketSize0 for endpoint 0
+0x6a,0x5,		# vendor id - WACOM Co., Ltd.
+0x44,0x0,		# product id - Intuos2 12x12
+0x26,0x1,		# bcdDevice - "version number" of the Wacom XD-1212-U
+0x1,		# iManufacturer
+0x2,		# iProduct
+0x0,		# iSerialNumber
+0x1		# bNumConfigurations
+]
+
+USB_CONFIGDESC = @[
+0x9,		# bLength - USB spec 9.6.3, page 264-266, Table 9-10
+0x2,		# bDescriptorType;
+0x22,0x0,		# wTotalLength (9+9+9+7)
+0x1,		# bNumInterfaces
+0x1,		# bConfigurationValue
+0x0,		# iConfiguration
+0x80,		# bmAttributes
+0x32,		# bMaxPower (mA/2)(XD-1218-U = 140mA, Teensy = ??? : Total: 100mA)
+0x9,		# bLength - interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
+0x4,		# bDescriptorType
+0x0,		# bInterfaceNumber
+0x0,		# bAlternateSetting
+0x1,		# bNumEndpoints
+0x3,		# bInterfaceClass (0x03 = HID)
+0x1,		# bInterfaceSubClass (0x01 = Boot)
+0x1,		# bInterfaceProtocol (0x02 = Mouse)
+0x0,		# iInterface
+0x9,		# bLength - HID interface descriptor, HID 1.11 spec, section 6.2.1
+0x21,		# bDescriptorType
+0x0,0x1,		# bcdHID - Intuos2 is using HID version 1.00 (instead of 1.11)
+0x0,		# bCountryCode
+0x1,		# bNumDescriptors
+0x22,		# bDescriptorType
+0x9a,0x0,		# wDescriptorLength  HIDREPORTDESC Length (Graphire3 is 0x0062)
+0x7,		# bLength - endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
+0x5,		# bDescriptorType
+0x81,		# bEndpointAddress  1 | 0x80
+0x3,		# bmAttributes (0x03=intr)
+0xa,0x0,		# wMaxPacketSize
+0x5		# bInterval max number of ms between transmit packets
+]
+
+USB_HIDREPORTDESC = @[
+0x5,0x1,		# USAGE_PAGE (Generic Desktop)
+0x9,0x2,		# USAGE (Mouse)
+0xa1,0x1,		# COLLECTION (Application)
+0x85,0x1,		#   REPORT_ID (1)
+0x9,0x1,		#   USAGE (Pointer)
+0xa1,0x0,		#   COLLECTION (Physical)
+0x5,0x9,		#     USAGE_PAGE (Button)
+0x19,0x1,		#     USAGE_MINIMUM (Button 1)
+0x29,0x3,		#     USAGE_MAXIMUM (Button 3)
+0x15,0x0,		#     LOGICAL_MINIMUM (0)
+0x25,0x1,		#     LOGICAL_MAXIMUM (1)
+0x95,0x3,		#     REPORT_COUNT (3)
+0x75,0x1,		#     REPORT_SIZE (1)
+0x81,0x2,		#     INPUT (Data,Var,Abs)
+0x95,0x5,		#     REPORT_COUNT (5)
+0x81,0x3,		#     INPUT (Cnst,Var,Abs)
+0x5,0x1,		#     USAGE_PAGE (Generic Desktop)
+0x9,0x30,		#     USAGE (X)
+0x9,0x31,		#     USAGE (Y)
+0x9,0x38,		#     USAGE (Wheel)
+0x15,0x81,		#     LOGICAL_MINIMUM (-127)
+0x25,0x7f,		#     LOGICAL_MAXIMUM (127)
+0x75,0x8,		#     REPORT_SIZE (8)
+0x95,0x3,		#     REPORT_COUNT (3)
+0x81,0x6,		#     INPUT (Data,Var,Rel)
+0xc0,		#   END_COLLECTION
+0xc0,		# END_COLLECTION
+0x5,0xd,		# USAGE_PAGE (Digitizers)
+0x9,0x1,		# USAGE (Digitizer)
+0xa1,0x1,		# COLLECTION (Application)
+0x85,0x2,		#   REPORT_ID (2)
+0x9,0x0,		#   USAGE (Undefined)
+0x75,0x8,		#   REPORT_SIZE (8)
+0x95,0x9,		#   REPORT_COUNT (9)
+0x15,0x0,		#   LOGICAL_MINIMUM (0)
+0x26,0xff,0x0,		#   LOGICAL_MAXIMUM (255)
+0x81,0x2,		#   INPUT (Data,Var,Abs)
+0x9,0x3a,		#   USAGE (Program Change Keys)
+0x25,0x2,		#   LOGICAL_MAXIMUM (2)
+0x95,0x1,		#   REPORT_COUNT (1)
+0xb1,0x2,		#   FEATURE (Data,Var,Abs)
+0x85,0x3,		#   REPORT_ID (3)
+0x9,0x0,		#   USAGE (Undefined)
+0x26,0xff,0x0,		#   LOGICAL_MAXIMUM (255)
+0xb1,0x2,		#   FEATURE (Data,Var,Abs)
+0x85,0x4,		#   REPORT_ID (4)
+0x9,0x3a,		#   USAGE (Program Change Keys)
+0x25,0x1,		#   LOGICAL_MAXIMUM (1)
+0xb1,0x2,		#   FEATURE (Data,Var,Abs)
+0x85,0x5,		#   REPORT_ID (5)
+0x9,0x0,		#   USAGE (Undefined)
+0x26,0xff,0x0,		#   LOGICAL_MAXIMUM (255)
+0x95,0x8,		#   REPORT_COUNT (8)
+0xb1,0x2,		#   FEATURE (Data,Var,Abs)
+0x85,0x6,		#   REPORT_ID (6)
+0x9,0x0,		#   USAGE (Undefined)
+0xb1,0x2,		#   FEATURE (Data,Var,Abs)
+0x85,0x7,		#   REPORT_ID (7)
+0x9,0x0,		#   USAGE (Undefined)
+0x95,0x4,		#   REPORT_COUNT (4)
+0xb1,0x2,		#   FEATURE (Data,Var,Abs)
+0x85,0x8,		#   REPORT_ID (8)
+0x9,0x0,		#   USAGE (Undefined)
+0xb1,0x2,		#   FEATURE (Data,Var,Abs)
+0x85,0x9,		#   REPORT_ID (9)
+0x9,0x0,		#   USAGE (Undefined)
+0x95,0x1,		#   REPORT_COUNT (1)
+0xb1,0x2,		#   FEATURE (Data,Var,Abs)
+0x85,0xa,		#   REPORT_ID (10)
+0x9,0x0,		#   USAGE (Undefined)
+0x95,0x2,		#   REPORT_COUNT (2)
+0xb1,0x2,		#   FEATURE (Data,Var,Abs)
+0x85,0xb,		#   REPORT_ID (11)
+0x9,0x0,		#   USAGE (Undefined)
+0x95,0x1,		#   REPORT_COUNT (1)
+0xb1,0x2,		#   FEATURE (Data,Var,Abs)
+0xc0		# END_COLLECTION
+]
+
+USB_HIDREPORTDESC2 = @[
+]
+
+USB_STRING1 = "WACOM"
+USB_STRING2 = "XD-1212-U - WaxBee emulation"
+USB_STRING3 = ""
+USB_STRING4 = ""
+USB_STRING5 = ""
+
+# Valid choices for USB_PROTOCOL:
+# 4: WACOM_PROTOCOL4
+# 5: WACOM_PROTOCOL5
+# 6: WACOM_BAMBOO_TOUCH
+
+USB_PROTOCOL = 5
+USB_ENDPOINT0SIZE = 8
+USB_ENDPOINT1SIZE = 10
+USB_ENDPOINT2SIZE = 0
+USB_ENDPOINT3SIZE = 0
+USB_X_MIN = 0
+USB_Y_MIN = 1200
+USB_X_MAX = 30480
+USB_Y_MAX = 31680
+USB_X_ANCHOR_MIN = 0
+USB_Y_ANCHOR_MIN = 0
+USB_X_ANCHOR_MAX = 0
+USB_Y_ANCHOR_MAX = 0
+USB_PRESSURE_MAX = 1023
+
+# Valid choices for USB_BUTTON_ENCODING:
+# 0: NONE
+# 1: WACOM_INTUOS2_1218
+
+USB_BUTTON_ENCODING = 0
+
+# Valid choices for SLAVE_PROTOCOL:
+# 1: WACOM_ADB
+# 2: WACOM_ISDV4
+# 3: WACOM_PROTOCOL5
+# 4: WACOM_PROTOCOL4
+# 5: WACOM_ISDV4_TOUCH
+# 6: TOPAZ
+
+SLAVE_PROTOCOL = 4
+
+# (not implemented yet) Orientation affect X,Y coordinates but should also
+# affect "tilt" and "rotation" values accordingly.
+# NOTE: Data is rotated before MIN/MAX/ANCHOR transformation#
+
+# Valid choices for SLAVE_ORIENTATION:
+# 0: NORMAL
+# 1: ROTATED_RIGHT
+# 2: UPSIDE_DOWN
+# 3: ROTATED_LEFT
+
+SLAVE_ORIENTATION = 0
+SLAVE_X_MIN = 0
+SLAVE_Y_MIN = 0
+SLAVE_X_MAX = 30480
+SLAVE_Y_MAX = 30480
+SLAVE_X_ANCHOR_MIN = 0
+SLAVE_Y_ANCHOR_MIN = 0
+SLAVE_X_ANCHOR_MAX = 0
+SLAVE_Y_ANCHOR_MAX = 0
+SLAVE_PRESSURE_MAX = 255
+
+# Configuration of special "Active" areas on the tablet (like a button).#
+SLAVE_ACTIVE_AREAS = @[
+]
+
+
+# 16Mhz is not recommended with 3.3v supply.#
+
+# Valid choices for CPU_CORE_CLOCK:
+# 0: F_16MHZ
+# 1: F_8MHZ
+
+CPU_CORE_CLOCK = 0
+
+# Serial port speed at initialization time.#
+
+# Valid choices for INITIAL_SERIAL_PORT_SPEED:
+# 0: BAUD_9600
+# 1: BAUD_19200
+# 2: BAUD_38400
+
+INITIAL_SERIAL_PORT_SPEED = 0
+
+# Serial port speed during normal operation.#
+
+# Valid choices for SERIAL_PORT_SPEED:
+# 0: BAUD_9600
+# 1: BAUD_19200
+# 2: BAUD_38400
+
+SERIAL_PORT_SPEED = 1
+
+# Maximum time before packet gets repeated.
+# 0 to disable; max: 1200 ms#
+IDLE_TIME_LIMIT_MS = 50
+
+# Power up setup of GPIO pins
+# Syntax: comma separated list of commands. Example:
+# C7^,D4-,P250,D4+,P500,D4-
+# D4 : Pin D4, + drive high (VCC), - drive low (GND), ^ pull-up, ~ floating, Pn Pause for "n" ms#
+GPIO_INIT = ""
+
+# Multi-purpose internal debug data. To be left empty for normal operation.#
+DEBUG_DATA = @[
+]
+
+#==============================================================================
+# A note about this file and its format for the braves that wants to tweak stuff
+#------------------------------------------------------------------------------
+# Do not change anything here unless you think you know what you are doing. :)
+#
+# Note that even if it stops working (a thing that can happen quite easily),
+# there are virtually no chances that you break something 'physically'.
+#
+# In any case, it cannot 'brick' the WaxBee, there is always a way out. At worse,
+# it might crash your OS (or the USB driver) or make it install USB drivers you
+# did not want. Nothing that cannot be fixed.
+#
+#------------------------------------------------------------------------------
+# Configuration items have the format :
+#
+#   NAME = 123
+#
+# Numeric values can be expressed as base-10 (decimal) or base-16 (hexadecimal) 
+# The hexadecimal notation requires 0x to be prepended. Example: 0x5e
+#
+# Text requires double-quotes as delimiters.
+#
+# Text comments starts with a # and goes up to the end of the line. Empty lines
+# are OK.
+#
+# Each entry has a multi-line comment shown before. These are fixed. They will
+# will be overridden when the WaxBee Config utility writes-back this file when
+# 'saving'.
+#
+# Each value can have a one-line comment attached which will be shown after the
+# value on the same line. This comment is tied to the value and will be 
+# retained after a read/write of the file (unless the value changed).
+#
+#   USB_PORT = 2  # DEBUG
+#
+# About multi-byte values (e.g. @[ ... ] ):
+#
+# The values are separated by commas and can be expressed as base-10 (decimal)
+# or base-16 (hexadecimal). The hexadecimal notation requires 0x to be
+# prepended.
+#
+# Each value is normally shown one byte (8 bits) at a time, but two bytes (16 
+# bits) are supported.# Currently, only bytes in 'Little-Endian mode' is
+# supported. Use the notation: LE16() (i.e. Little Endian, 16-bits). 
+#
+# For example:
+#
+# 	LE16(0x0c17),
+#
+# A one-line comment can be 'attached' to a value location, that comment
+# reflects all the bytes that occurred before the previous comment and should be
+# shown together (on the same line).  These comments are tied to the 'values'.
+# These comments will be retained when the WaxBee Config tool reads/writes a 
+# configuration file.
+#
+# Typically a configuration is always a 'copy' of an existing one which already
+# contained commented values
+#
+#==============================================================================
+
