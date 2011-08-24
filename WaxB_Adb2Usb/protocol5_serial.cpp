@@ -152,7 +152,7 @@ namespace protocol5_serial
 
 //		console::print(' ');
 //		console::printHex(data, 2);
-//		console::print((char)data);
+		console::print((char)data);
 
 		switch(itsCurState)
 		{
@@ -206,8 +206,8 @@ namespace protocol5_serial
 			{
 				if(data & 0x80)
 				{
-//					console::println();
-//					console::print("*");
+					console::println();
+					console::print("*");
 
 					if(datalen > 0)
 						console::print("(?!)");
@@ -219,7 +219,7 @@ namespace protocol5_serial
 					return;		// wait for the first valid byte
 				}
 
-//				console::printHex(data, 2);
+				console::printHex(data, 2);
 
 				if(datalen < WACOM_PKGLEN_PROTOCOL5)
 				{
@@ -232,7 +232,7 @@ namespace protocol5_serial
 					// event consumed
 					datalen = 0;
 
-//					console::println();
+					console::println();
 
 					if ((buffer[0] & 0xFC) == 0xC0)
 					{
@@ -251,7 +251,7 @@ namespace protocol5_serial
 									(((uint32_t)buffer[6] & 0x7f) <<  2) |
 									(((uint32_t)buffer[7] & 0x60) >>  5);
 */
-//						console::printHex(toolid, 8);
+						console::printHex(toolid, 8);
 
 						eraser_mode = 0;
 
@@ -360,7 +360,7 @@ namespace protocol5_serial
 					/* we might have been fooled by tip and second
 					 * sideswitch when it came into prox */
 
-//					console::println();
+					console::println();
 				}
 				break;
 			}
