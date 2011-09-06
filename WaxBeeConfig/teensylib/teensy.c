@@ -199,7 +199,7 @@ static int hard_reboot(void)
 #include <windows.h>
 #include <setupapi.h>
 
-#ifdef __MINGW64__
+#ifdef MINGW64
  // tweaks done in header files for mingw64
 //#include "win64/hidpi.h"
 #include "win64/hidclass.h"

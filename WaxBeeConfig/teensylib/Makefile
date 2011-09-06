@@ -1,19 +1,14 @@
-all: teensy64.dll teensy32.dll
+all: teensy32.dll teensy64.dll
 
-CC = gcc
-JAVACC = C:\Program Files\Java\jdk1.6.0_23\bin\javac
-
-teensy64.dll: teensy.c
-	$(CC) -v -Wall -DUSE_WIN32 -m64 -shared -o teensy64.dll teensy.c -lhid -lsetupapi  
-#	dlltool -z teensy64.def --export-all-symbol teensy64.dll
+CC = c:\minGW64\bin\gcc
 
 teensy32.dll: teensy.c
-	$(CC) -v -Wall -DUSE_WIN32 -shared -o teensy32.dll teensy.c -lhid -lsetupapi  
-#	dlltool -z teensy32.def --export-all-symbol teensy32.dll
+	$(CC) -v -Wall -Wl,--kill-at,--output-def,teensy32_out.def -DUSE_WIN32 -DMINGW64 -m32 -shared -o teensy32.dll teensy.c -lhid -lsetupapi  
 
-Teensy.class: Teensy.java
-	$(JAVACC) Teensy.java
-	
+teensy64.dll: teensy.c
+	$(CC) -v -Wall -Wl,--kill-at,--output-def,teensy64_out.def -DUSE_WIN32 -DMINGW64 -m64 -shared -o teensy64.dll teensy.c -lhid -lsetupapi  
+
 clean:
-	rm -f teensy.dll
-	rm -f Teensy.class
+	rm -f teensy32.dll
+	rm -f teensy64.dll
+

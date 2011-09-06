@@ -159,7 +159,7 @@ public class ProgramDialog extends JDialog
 	
 							if(itsKeepReprogramming)
 							{
-								publish("\nFinished Successfully; Device rebooted.\n\n");
+								publish("\nFinished Successfully; Rebooting Device.\n\n");
 								Thread.sleep(2000);
 								firstPass = false;
 								continue;
@@ -169,7 +169,7 @@ public class ProgramDialog extends JDialog
 							break;
 						}
 							
-						return "Finished Successfully; Device rebooted.";
+						return "Finished Successfully; Rebooting Device.";
 					}
 
 					protected FirmwareImage encodeFirmware() throws Exception

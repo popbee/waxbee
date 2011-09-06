@@ -173,8 +173,7 @@ public class TeensyProgrammer
 			packet[0] = (byte)0xFF;
 			packet[1] = (byte)0xFF;
 			
-			if(!teensy.write(packet, itsBlockSize+2, 0.50))
-				throw new Exception("Error rebooting device"); 			
+			teensy.write(packet, itsBlockSize+2, 0.50);
 
 			// finished!
 			progressMonitor.setProgress(numberOfBlocks+1);
