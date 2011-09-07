@@ -2,7 +2,7 @@
 # WaxBee configuration
 #------------------------------------------------------------------------------
 NAME = "UD-1212-R to Intuos2 12x18"
-DESCRIPTION = "Converts an Ultrapad/ArtZII/DigitizerII 12x12 (UD-1212-R) to a USB Intuos2 (XD-1218-U)"
+DESCRIPTION = "Converts an Ultrapad/ArtZII/DigitizerII 12x12 (UD-1212-R) to a USB Intuos2 (XD-1218-U) along with debugging pen events playback"
 SLAVE_TABLET_X_MAX = 30479
 SLAVE_TABLET_Y_MAX = 30479
 USB_TABLET_X_MAX = 45719
