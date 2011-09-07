@@ -20,7 +20,7 @@ mkdir "%DISTRIBDIR%"
 rem waxbee.jar
 
 mkdir "%DISTRIBDIR%\jar"
-xcopy "%ROOT%\bin\org" "%DISTRIBDIR%\jar\org\" /E > nul
+xcopy "%ROOT%\bin\org" "%DISTRIBDIR%\jar\org\" /E 
 copy "%ROOT%\teensylib\teensy64.dll" "%DISTRIBDIR%\jar\" > nul
 copy "%ROOT%\teensylib\teensy32.dll" "%DISTRIBDIR%\jar\" > nul
 copy "%ROOT%\rawhidlib\rawhid64.dll" "%DISTRIBDIR%\jar\" > nul
