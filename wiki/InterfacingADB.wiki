@@ -25,7 +25,7 @@ If you have a problem connecting, try running the Teensy loader application (fro
     * the ADB ground (black) to any of the "GND" on the Teensy
     * the ADB data bus (green) to "C7" (in the corner) on the Teensy
     * the last ADB pin (PSW/Power On) must be left unconnected. 
-  * In addition you have to solder a resistor (Note that this is used as a pull-up and is sometimes called a 'pull-up resistor' or even 'pull-up' for short).
+  * In addition you have to solder the pull-up (1k..5k) resistor between the data bus (C7) and (VCC).
 
       Check out the ADB pinout on wikipedia:
       [http://en.wikipedia.org/wiki/Apple_Desktop_Bus]
