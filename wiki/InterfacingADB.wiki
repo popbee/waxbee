@@ -16,9 +16,9 @@
 
 = What to do =
 
-  * Before soldering anything, check that the Teensy board alone works correctly by plugging it into a USB port. Run the WaxBeeConfig tool and try uploading a "test" firmware (like the blinky ones). Note that the Teensy ships with a firwmare that blinks the LED as well). 
+  * Before soldering anything, check that the Teensy board alone works correctly by plugging it into a USB port. Note that the Teensy ships with a firwmare that blinks the LED as well). 
 
-If you have a problem connecting, try running the Teensy loader application (from prjc.com) and upload something just to check that it works (again one of the slow/fast Blinky).
+If you have a problem connecting, try running the Teensy loader application (from prjc.com) and upload something just to check that it works (one of the slow/fast Blinky are good test candidates).
 
   * You have to *solder* 3 wires from the mini-din connector. Essentially:
     * the ADB +5v (red) to any of the "VCC" on the Teensy
