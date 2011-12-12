@@ -9,9 +9,9 @@
   * S-Video cable OR any 4-pin mini-din connector + wires (either female or male connector will do) OR nothing by directly soldering the wires inside the ADB board.
   * a resistor between 1k and 5k Ohms (5V TTL pull-up).
   * basic electronic soldering equipment and preferably a multi-meter to test out stuff
-  * Java installed. (pick the 64 bit version if you are running Windows 64 bits)
+  * Java installed.
   * The WaxBee software 
-  * The Teensy Loader (for Teensy board) -- unnecessary on Windows 64 bit + Java 64 bit
+  * The Teensy Loader (for Teensy board) -- unnecessary on Windows
   * The appropriate driver for the USB board you are emulating (Wacom Intuos2 typically)
 
 = What to do =
