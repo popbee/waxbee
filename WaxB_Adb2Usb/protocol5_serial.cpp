@@ -56,16 +56,19 @@ namespace protocol5_serial
 
 	void initialState()
 	{
-		// attempt to reset the board back to 9600 bauds
+		// attempt to reset the board back to 9600 bauds. If the board is already at 9600 baud the following
+		// will be ignored by the board. This case happens when you restart the teensy software without
+		// rebooting the tablet (occurs after a firmware update).
 
-		serial::setNormalPortSpeed(); // try communicating at 38400 baud
-		serial::sendString("\r\r\r\rBA96\r"); // send a few \r to make sure we are in sync
+		serial::setNormalPortSpeed(); // try communicating at the configured normal baud rate (19200 or 38400)
+		serial::sendString("\r\r\r\rBA96\r"); // send a few extra \r to make sure we are in sync
 
 		_delay_ms(30);
 
 		// if not already, we should now be at 9600 baud at this point
 
-		serial::setInitialPortSpeed(); // switch to 9600 baud
+		serial::setInitialPortSpeed(); // switch internal serial port to 9600 baud
+
 		serial::sendString("\r\r\r\r#\r"); // do a factory reset
 
 		_delay_ms(30);
@@ -135,14 +138,13 @@ namespace protocol5_serial
 	}
 
 	/**
-	 * BA38: set port speed to 38400,
 	 * IT0: set max reporting speed.
 	 * MT0: disable multimode (in case this was enabled)
 	 * ID1: dunno what it does.
 	 */
 	void enableFeatures()
 	{
-		serial::sendString("MT0\rIT0\rID1\rBA38\r");
+		serial::sendString("MT0\rIT0\rID1\r");
 	}
 
 	void onSerialByteReceived(uint8_t data)
@@ -186,17 +188,27 @@ namespace protocol5_serial
 				{
 					if(parse_modelversion())
 					{
-						// change port speed and other thingy
 						enableFeatures();
+
+						// Tell the tablet to run at the normal configured speed
+
+						uint8_t baud = extdata_getValue8(EXTDATA_SERIAL_PORT_SPEED);
+
+						if(baud == EXTDATA_SERIAL_PORT_SPEED_BAUD_38400)
+							serial::sendString("BA38\r");
+						else if(baud == EXTDATA_SERIAL_PORT_SPEED_BAUD_19200)
+							serial::sendString("BA19\r");
+						else if(baud == EXTDATA_SERIAL_PORT_SPEED_BAUD_9600)
+							serial::sendString("BA96\r");
 
 						_delay_ms(20);
 
-						serial::setNormalPortSpeed(); // set serial port speed to 38400
+						serial::setNormalPortSpeed(); // set our serial port speed as well
 
 						// test output max coords.
 //						serial::sendString("\r\r~C\r");
 
-						serial::sendString("\r\rST\r");  // Start transmitting data
+						serial::sendString("\r\rST\r");  // STart transmitting data
 
 						itsCurState = packet;
 					}
