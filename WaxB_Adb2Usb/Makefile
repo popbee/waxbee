@@ -80,11 +80,11 @@ OBJDIR = ./Build
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC =  extdata.c strings.c
+SRC = $(wildcard *.c)
 
 
 # List C++ source files here. (C dependencies are automatically generated.)
-CPPSRC = adb_codec.cpp isdv4_serial.cpp touch_event.cpp adb_controller.cpp pen_button_handler.cpp usb.cpp button_event.cpp pen_data_transform.cpp usb_debug_channel.cpp console.cpp pen_event.cpp usb_util.cpp debugproc.cpp protocol4_serial.cpp wacom_usb.cpp frequency.cpp protocol5_serial.cpp waxbee_main.cpp gpioinit.cpp serial.cpp intuos2_button.cpp topaz_serial.cpp
+CPPSRC = $(wildcard *.cpp)
 
 
 # List Assembler source files here.
