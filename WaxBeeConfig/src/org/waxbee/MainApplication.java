@@ -61,6 +61,8 @@ import org.waxbee.teensy.extdata.WaxbeeConfig;
 @SuppressWarnings("serial")
 public class MainApplication extends JFrame
 {
+	private static final String VERSION = "0.11";
+	
 	private static final String TEMPLATE_EXTENSION_PATTERN = "*.tmpl.txt";
 
 	private static final String WAXBEE_CONFIG_TXT = "WaxbeeConfig.txt";
@@ -123,7 +125,7 @@ public class MainApplication extends JFrame
 		p.add(itsMonitorsCombo, "wmin 40,grow 0,wrap");
 
 		setIconImage(getImage("appicon.png"));
-		setTitle("Waxbee Config 0.10b");
+		setTitle("Waxbee Config " + VERSION);
 
 		try
 		{
@@ -420,7 +422,7 @@ public class MainApplication extends JFrame
 		else
 			dlg.setMode(FileDialog.LOAD);
 		
-		dlg.setFile(TEMPLATE_EXTENSION_PATTERN);
+		dlg.setFile(filepattern);
 		if(directory != null)
 			dlg.setDirectory(directory.getAbsolutePath());
 		dlg.setVisible(true);
@@ -434,7 +436,7 @@ public class MainApplication extends JFrame
 		
 		return filepath;
 	}
-	
+
 	protected File computeTemplateDir()
 	{
 		return new File("config_templates");
