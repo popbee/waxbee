@@ -26,7 +26,9 @@
 
 #define TABLET_TYPE_UNSUPPORTED	0	// unknown/undefined protocol 4 serial tablet
 #define TABLET_TYPE_ULTRAPAD	1  	// UD-*
-					// Note: other tablets with Protocol 4 includes:  PL-*,ET-*,CT-*,KT-*
+#define TABLET_TYPE_ARTPADII    2	// KT-0405-R
+#define TABLET_TYPE_PENPARTNER  3	// CT-0405-R
+					// Note: other tablets with Protocol 4 includes:  PL-*,ET-*
 
 #define ROM_VERSION_UNSUPPORTED	0	// unknown/undefined/V1.1 or earlier
 #define ROM_VERSION_1_2		2  	// lots of UD-1218-R at version 1.2
@@ -103,6 +105,14 @@ namespace protocol4_serial
 		{
 			tabletType = TABLET_TYPE_ULTRAPAD;
 		}
+		else if(buffer[2] == 'K')
+		{
+			tabletType = TABLET_TYPE_UNSUPPORTED; // ARTPADII is with ROM 1.3
+		}
+		else if(buffer[2] == 'C')
+		{
+			tabletType = TABLET_TYPE_PENPARTNER;
+		}
 		else
 		{
 			tabletType = TABLET_TYPE_UNSUPPORTED;
@@ -124,6 +134,9 @@ namespace protocol4_serial
 		else
 			romVersion = TABLET_TYPE_UNSUPPORTED;
 
+		if(romVersion == ROM_VERSION_1_3 && buffer[2] == 'K')
+			tabletType = TABLET_TYPE_ARTPADII;
+
 		if(console::console_enabled)
 		{
 			console::printP(STR_SERIAL_TABLET_);
@@ -138,6 +151,12 @@ namespace protocol4_serial
 					break;
 				case TABLET_TYPE_ULTRAPAD:
 					console::printP(STR_ULTRAPAD);
+					break;
+				case TABLET_TYPE_ARTPADII:
+					console::printP(STR_ARTPADII);
+					break;
+				case TABLET_TYPE_PENPARTNER:
+					console::printP(STR_PENPARTNER);
 					break;
 			}
 
