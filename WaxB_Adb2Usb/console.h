@@ -30,7 +30,7 @@ namespace console
 	void printbit(bool bit);
 	void printNumber(long number);
 	void printBinaryByte(uint8_t number);
-	void printHex(uint16_t number, uint8_t hexdigits);
+	void printHex(uint32_t number, uint8_t hexdigits);
 	void flush();
 }
 

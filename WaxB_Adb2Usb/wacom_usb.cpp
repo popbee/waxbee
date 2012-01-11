@@ -344,72 +344,278 @@ namespace WacomUsb
 		{
 			if(currentlyInRange)
 			{
-				// normal pen packet
-				protocol5_packet.index = 0;
-				protocol5_packet.button0 = penEvent.button0;
-				protocol5_packet.button1 = penEvent.button1;
-				protocol5_packet.bit3 = 0;
-				protocol5_packet.bit4 = 0;
-				protocol5_packet.proximity = 1; // check with distance maybe?
-				protocol5_packet.bit6 = 1;
-				protocol5_packet.bit7 = 1;
+				if(penEvent.is_mouse == false) {
+					// normal pen packet
+					protocol5_packet.index = 0;
+					protocol5_packet.button0 = penEvent.button0;
+					protocol5_packet.button1 = penEvent.button1;
+					protocol5_packet.bit3 = 0;
+					protocol5_packet.bit4 = 0;
+					protocol5_packet.proximity = penEvent.proximity; // TODO: Does this work correctly?
+					protocol5_packet.bit6 = 1;
+					protocol5_packet.bit7 = 1;
 
-				PenDataTransform::XformedData xformed;
+					// Bizarre discovery: Wondering if bit 6 was actually proximity, I set proximity to 0
+					// and set bit6 = penEvent.proximity and when I put an Intuos1 pen on the tablet it 
+					// started cycling through a bunch of weird tools, many of which I don't think actually
+					// exist such as "10 button stylus" and "Wood pen".
 
-				PenDataTransform::transform_pen_data(penEvent, xformed,
-									true); // with tilt
+					PenDataTransform::XformedData xformed;
 
-				protocol5_packet.x_high = ((xformed.x >> 8) & 0xff);
-				protocol5_packet.x_low = (xformed.x & 0xff);
+					PenDataTransform::transform_pen_data(penEvent, xformed,
+										true); // with tilt
 
-				protocol5_packet.y_high = ((xformed.y >> 8) & 0xff);
-				protocol5_packet.y_low = (xformed.y & 0xff);
+					protocol5_packet.x_high = ((xformed.x >> 8) & 0xff);
+					protocol5_packet.x_low = (xformed.x & 0xff);
 
-				uint8_t tiltx = xformed.tilt_x + 0x40;
-				uint8_t tilty = xformed.tilt_y + 0x40;
+					protocol5_packet.y_high = ((xformed.y >> 8) & 0xff);
+					protocol5_packet.y_low = (xformed.y & 0xff);
 
-				protocol5_packet.byte6 = (xformed.pressure >> 2) & 0xFF;
-				protocol5_packet.byte7 = ((xformed.pressure & 0x3) << 6) | ((tiltx >> 1) & 0x3F);
-				protocol5_packet.byte8 = ((tiltx << 7) & 0x80) | ( tilty & 0x7F);
+					uint8_t tiltx = xformed.tilt_x + 0x40;
+					uint8_t tilty = xformed.tilt_y + 0x40;
 
-				protocol5_packet.distance = 0x0D;  // we must be getting this value from ADB or Serial tablets, no??
+					if((penEvent.serial_packet_first_byte & 0xB8) != 0xA0) {
+						// TODO: Test this code with an actual airbrush.
+						// This is an airbrush "second packet".  The only difference between the first and second
+						// packets is that the absolute wheel position replaces the bits that contain the pressure
+						// value in the first packet and all buttons are ignored.
+						xformed.pressure = penEvent.abswheel;
 
-/*				if(console::console_enabled)
-				{
-					console::print("[USB Packet - prox:");
-					console::printbit(protocol5_packet.proximity);
-					console::print(" b0:");
-					console::printbit(protocol5_packet.button0);
-					console::print(" b1:");
-					console::printbit(protocol5_packet.button1);
-					console::print(" x:");
-					console::printNumber((((uint16_t)protocol5_packet.x_high) << 8) | protocol5_packet.x_low);
-					console::print(" y:");
-					console::printNumber((((uint16_t)protocol5_packet.y_high) << 8) | protocol5_packet.y_low);
-					console::print(" pressure:");
-					console::printNumber((((uint16_t)protocol5_packet.byte6) << 2) |
-							(((uint16_t)protocol5_packet.byte7) >> 6));
-					console::print(" byte6,7,8:");
-					console::printHex(protocol5_packet.byte6,2);
-					console::printHex(protocol5_packet.byte7,2);
-					console::printHex(protocol5_packet.byte8,2);
-					console::println("]");
+						// Also, to identify that this is an airbrush second packet using the USB protocol,
+						// (data[1] & 0xbc) == 0xb4 must be true.
+						// 0xbc: 1011 1100
+						// 0xb4: 1011 0100
+						// So basically we need to send a value like this (where * bits can have changing values):
+						//       1*11 01**
+						// 
+						// The three unknown * bits are like a 3 bit number with 8 possible values.  I tried
+						// sending each of these values using debug packet playback and found the following:
+						// B4 and F4 seem to give correct results.
+						// B6 and F6 change the wheel value to negative in the "Diagnose" panel of the Wacom
+						// control panel.  Since this bit isn't interpreted by the linux driver, I assume this 
+						// is a bug or the start of a feature not implemented.
+						// F5, B5, B7, and F7 all have bit 0 set which is supposed to be the tool index bit.
+						// When any of these values are passed, no wheel position is detected by the Diagnose
+						// panel and even the pen position packets are mostly ignored.
+						// So B4 and F4 are the only working values.  I'm choosing B4 since Linux is actually
+						// checking for a B4 value.
+						// 0xb4 = 1011 0100
+						// The standard data[1] we send with a normal pen packet is (B are buttons, P is proximity):
+						//        11P0 0BB0
+						// So we need to set button1 and bit4 to 1 and button0 and bit6 to 0.  Other bits are already
+						// set correctly.
+						protocol5_packet.button0 = 0;
+						protocol5_packet.button1 = 1;
+						protocol5_packet.bit4 = 1;
+						protocol5_packet.bit6 = 0;
+
+						// According to the linux driver, pressure, tilt, and the side button state are ignored
+						// unless (data[1] & 0xb8) == 0xa0:
+						// 0xb8: 1011 1000
+						// 0xa0: 1010 0000
+						// So we'd need to send 1*10 0*** but that isn't compatible with sending 1*11 01**
+						// so pressure, tilt, and the side button state in the second packet would be ignored
+						// except that the linux driver interprets just the tilt values when (data[1] & 0xbc) == 0xb4.
+						// So we can expect tilt to change based on the second packet, but not pressure (which
+						// is replaced by the wheel value) or button state.
+					}
+					protocol5_packet.byte6 = (xformed.pressure >> 2) & 0xFF;
+					protocol5_packet.byte7 = ((xformed.pressure & 0x3) << 6) | ((tiltx >> 1) & 0x3F);
+					protocol5_packet.byte8 = ((tiltx << 7) & 0x80) | ( tilty & 0x7F);
+
+					protocol5_packet.distance = 0x0D; // The serial protocol doesn't include a distance value, but it does include the PROXIMITY_BIT
+
+	/*				if(console::console_enabled)
+					{
+						console::print("[USB Packet - prox:");
+						console::printbit(protocol5_packet.proximity);
+						console::print(" b0:");
+						console::printbit(protocol5_packet.button0);
+						console::print(" b1:");
+						console::printbit(protocol5_packet.button1);
+						console::print(" x:");
+						console::printNumber((((uint16_t)protocol5_packet.x_high) << 8) | protocol5_packet.x_low);
+						console::print(" y:");
+						console::printNumber((((uint16_t)protocol5_packet.y_high) << 8) | protocol5_packet.y_low);
+						console::print(" pressure:");
+						console::printNumber((((uint16_t)protocol5_packet.byte6) << 2) |
+								(((uint16_t)protocol5_packet.byte7) >> 6));
+						console::print(" byte6,7,8:");
+						console::printHex(protocol5_packet.byte6,2);
+						console::printHex(protocol5_packet.byte7,2);
+						console::printHex(protocol5_packet.byte8,2);
+						console::println("]");
+					}
+	*/
 				}
-*/
+				else {
+					// data[1] must be set so the following if statement is true (from the Linux driver):
+					// if ((data[1] & 0xbc) == 0xa8 || (data[1] & 0xbe) == 0xb0 || (data[1] & 0xbc) == 0xac) {
+					// 0xbc: 1011 1100
+					// 0xbe: 1011 1110
+					// 0xa8: 1010 1000
+					// 0xb0: 1011 0000
+					// 0xac: 1010 1100
+					// So the if statement is saying:
+					// If bit 7=1, 5=1, 4=0, 3=1, 2=0       // Theory: 4D mouse
+					//    ||  7=1, 5=1, 4=1, 3=0, 2=0, 1=0  // Theory: Lens cursor packet
+					//    ||  7=1, 5=1, 4=0, 3=1, 2=1       // Theory: 2D mouse and/or maybe marker pen
+					// We later see that bit 1 is set only for a rotation packet.
+					// bit 4 is cleared only for 4D mouse packets.
+					// bit 3 is never referenced, but it's set to 0 only when bit 4 is set, so I'll assume it varies with bit 4.
+					// bit 2 is never referenced but when it's set, the mouse's rotation and throttle wheel stop working so I would guess this bit means 2D mouse.
+					// bit 5 is the "proximity" bit (set later), according to protocol5_struct, so if that bit isn't set, the linux
+					// driver will only pay attention to the position of the mouse and not its buttons, rotation, etc.
+					// Through experimentation I found that bit 6 must be set to 1 or the Wacom driver will not detect any button presses from the mouse.  It does still detect mouse position, rotation, and throttle position.
+					*pbuf++ = 0xe0; // data[1] with bit 7, 6, and 5 set.
+
+					// These bytes will later be filled with x/y position.
+					*pbuf++ = 0; // data[2]
+					*pbuf++ = 0; // data[3]
+					*pbuf++ = 0; // data[4]
+					*pbuf++ = 0; // data[5]
+					
+					int throttle = 0;
+					int rotation = 0;
+
+					if(LENS_CURSOR(penEvent)) {
+						// Construct lens cursor packet (tested using a 4D mouse to spoof a lens cursor tool id)
+						protocol5_packet.bit4 = 1;
+
+						*pbuf++ = 0; // data[6]
+						*pbuf++ = 0; // data[7]
+						*pbuf++ = penEvent.buttons & 0x1f; // data[8] bits: 0:left btn, 1:mid btn, 2:right btn, 3:lower right button, 4:lower left button
+					}
+					else if (MOUSE_2D(penEvent)) {
+						// Construct 2D mouse packet
+						// TODO: Test this code with a 2D mouse
+						protocol5_packet.bit3 = 1;
+						protocol5_packet.button1 = 1;
+						
+						*pbuf++ = 0; // data[6]
+						*pbuf++ = 0; // data[7]
+
+						// A 2d mouse has only left and right buttons plus a scroll wheel that can be clicked
+						// to send a middle button.  The scroll wheel apparently works by sending an "up" or
+						// "down" bit rather than sending an absolute value or a "throttle" value like the 4D mouse.
+						// penEvent.relwheel will be 0 if no scroll wheel movement was received, or -1 or 1 if an
+						// up or down wheel turn was received.
+						// It looks like the serial protocol interprets bit 0 as -1 and bit 1 as +1, but I think
+						// the USB protocol does the opposite.
+						// USB is expecting these bits to be set in data[8] (R=right btn, M=middle btn, L=left btn,
+						// D=down scroll wheel, U=up scroll wheel, *=doesn't matter, although two of these bits
+						// are used by the Intuos3 mouse to represent two side buttons):
+						//   ***RMLDU
+						*pbuf++ = ((penEvent.buttons & 0x07) << 2) 
+							      | (penEvent.relwheel > 0 ? 0x01 : 0x00)
+								  | (penEvent.relwheel < 0 ? 0x02 : 0x00);
+					}
+					else {
+						// Construct 4D mouse packet
+						protocol5_packet.bit3 = 1;
+
+						if((penEvent.serial_packet_first_byte & 0xbe) == 0xaa) {
+							// This is a 4D mouse "second packet" containing rotational information.
+							protocol5_packet.button0 = 1; // Set bit 1 to indicate this is the "second packet".
+
+							// In the serial protocol, rotation is measured by an 11 bit number (11 bits stores 0-2047).
+							// By looking at the linux driver and by rotating the mouse, I found that with the mouse held
+							// straight up, rotation_z jumps between 0 and 1799.  Rotating clockwise it decreases below 1799,
+							// 1350 at 90 degrees, 900 at 180, 450 at 270.
+							// In USB, rotation gets 10 bits plus a single +/- bit, so we can represent -1023 to 1023.
+							// By rotating the mouse in About > Diagnose I found that a value of -1 represents 359.9 degrees,
+							// -3 is around 358, etc.  A value of 125 is about 25 deg, while 1 is about 0 deg.  So they're
+							// essentially representing 0 (straight up) to 180 degrees with 0 to 900 rotating clockwise,
+							// then it jumps to around -900 and returns to 0 as you continue to rotate clockwise.
+							rotation = penEvent.rotation_z;
+							if(rotation < 900) {
+								// Rotation must be shifted left by 1 bit to make room to use bit 0 to represent
+								// positive or negative.  Why the heck they made the formatting so confusing is beyond me.
+								rotation = (rotation << 1) | 0x1; // Bit 0 is set when rotation is negative.
+							}
+							else {
+								rotation = 1799 - rotation;
+								rotation = rotation << 1;
+							}
+							*pbuf++ = (rotation & 0x7f8) >> 3; // data[6] holds the first 8 bits
+							*pbuf++ = (rotation & 0x07) << 5; // data[7]: bits 7-5 contain bits 2-0 of rotation_z, bit 5 also indicates whether the rotation is negative or not.
+							*pbuf++ = 0; // data[8]
+							//*pbuf++ = (penEvent.buttons & 0x07) | ((penEvent.buttons & 0x18) << 1); // data[8] bits: 0:left btn, 1:mid btn, 2:right btn, 3:throttle wheel has negative value when set, 4:lower right button, 5:lower left button
+						}
+						else {
+							// The serial data contains throttle values ranging from -1023 to 1023 using 10 bits for the value plus
+							// 1 bit for the +/-.  The USB data only supports an 8-bit value plus 1 bit for +/-, so we must scale
+							// throttle to range from -255 to +255 using 8 bits for the number and 1 bit for the +/-
+							throttle = penEvent.throttle;
+							if(throttle < 0) {
+								throttle = -throttle;
+							}
+							throttle >>= 2;
+
+							*pbuf++ = (throttle & 0xfc) >> 2; // data[6] stores bits 7-2 of throttle
+							*pbuf++ = (throttle & 0x03) << 6; // data[7] stores bits 1-0 of throttle
+							*pbuf++ = (penEvent.buttons & 0x07) | ((penEvent.buttons & 0x18) << 1) | (penEvent.throttle < 0 ? 0x08 : 0); // data[8] bits: 0:left btn, 1:mid btn, 2:right btn, 3:throttle wheel has negative value when set, 4:lower right button, 5:lower left button
+						}
+					}
+
+					// TODO: If setting X/Y here works, set it in one shared place for pen and mouse events.
+					protocol5_packet.proximity = penEvent.proximity;
+					//protocol5_packet.bit6 = penEvent.proximity;
+
+					PenDataTransform::XformedData xformed;
+
+					PenDataTransform::transform_pen_data(penEvent, xformed,
+										false); // without tilt
+				
+					// This will overwrite data[2] - [5] and the last 5 bits of [9]:
+					protocol5_packet.x_high = ((xformed.x >> 8) & 0xff);
+					protocol5_packet.x_low = (xformed.x & 0xff);
+
+					protocol5_packet.y_high = ((xformed.y >> 8) & 0xff);
+					protocol5_packet.y_low = (xformed.y & 0xff);
+
+					protocol5_packet.distance = 0x0D;
+
+					/*
+					if(protocol5_packet.button0 == 0) {
+						console::print("SB: ");
+						console::printNumber(penEvent.throttle);
+						console::print(" ");
+						console::printNumber(throttle);
+						console::print(" ");
+						console::printHex(protocol5_packet.byte8, 2);
+						console::println();
+					}
+					if(protocol5_packet.button0 == 1) {
+						console::print("SB: ");
+						console::printNumber(penEvent.rotation_z);
+						console::print(" ");
+						console::printNumber(rotation);
+						console::print(" ");
+						console::printHex(protocol5_packet.byte8, 2);
+						console::println();
+					}*/
+					/*
+					if(protocol5_packet.button0 == 0) {
+						console::print("SB: ");
+						console::printHex(protocol5_packet.byte8, 2);
+						console::println();
+					}*/
+				}
 			}
 			else
 			{
 				currentlyInRange = true;
 
-				// pen getting into range
+				// Tell the Wacom driver a tool has come into proximity.
 				//
-				// 	02 C2 85 20 16 00 2C D0 00 00   In Range: NORMAL PEN
-				//	02 C2 85 A0 16 00 2C D0 00 00   In Range: ERASER (PEN)
+				// Example Intuos2 pen and eraser proximity packets:
+				//   02 C2 85 20 16 00 2C D0 00 00   In Range: NORMAL PEN
+				//	 02 C2 85 A0 16 00 2C D0 00 00   In Range: ERASER (PEN)
+				// Tool id is 85<<4 | 20>>4 | d0&0f<<20 | 00&f0<<12 = 850 | 2 | 0 | 0 = 852
+				// Serial number is 20&0f<<28 + 16<<20 + 00<<12 + 2c<<4 + d0>>4 = 0+1600000000+0+2c0+d = 16000002CD
 
-				// To simplify the logic, "replace" the first packet with a proximity packet
-				// (will thus loose the first packet when first approaching the pen, but that
-				// should not be a problem I think)
-
+				/*
 				*pbuf++ = 0xC2; // [1]
 				*pbuf++ = 0x85; // [2]
 
@@ -423,7 +629,61 @@ namespace WacomUsb
 				*pbuf++ = 0x2C; // [6]
 				*pbuf++ = 0xD0; // [7]
 				*pbuf++ = 0x00; // [8]
-				*pbuf   = 0x00; // [9]
+				*pbuf   = 0x00; // [9]*/
+
+
+				// From http://git.yoctoproject.org/cgit/cgit.cgi/linux-yocto-2.6.37/plain/drivers/input/tablet/wacom_wac.c
+				// data[1] & 0x01 contains the "tool number".  Since this is a single bit, I'm guessing it's used to
+				// track up to two tools being used at the same time?  We'll just set it to 0.
+				// (data[1] & 0xfc) == 0xc0 must be true to be considered a "tool in proximity" packet.
+				// In the captured packets from an Intuos2 pen, this byte contained 0xc2, but the source code above
+				// doesn't use the "2" bit for anything.  Still, we may as well replicate the captured data.
+				*pbuf++ = 0xC2; // data[1]
+
+				// This is how the tool type is decoded by the USB linux driver:
+				//   (data[2] << 4) | (data[3] >> 4) | ((data[7] & 0x0f) << 20) | ((data[8] & 0xf0) << 12);
+				// And this is how the serial is decoded:
+				//   ((data[3] & 0x0f) << 28) + (data[4] << 20) + (data[5] << 12) + (data[6] << 4) + (data[7] >> 4);
+				// We need to reverse these equations to encode the tool id and serial.  If you look at the equations,
+				// Tool id (T) is encoded using 20 bits and serial (S) is encoded using 32 bits.  However, notice that
+				// tool id decodes to a 24 bit number where only bits 23-16, 11-0 are assigned values stored in the
+				// encoded data.  It would be logical to place bits 15-12 as the last 4 bits of data[8] but the
+				// decoding equation ignores those bits using & 0xf0.  That could be a bug in the decoding equation.
+				// Either way, these bits are all 0 in the data we plan to send so it doesn't matter for our purposes.
+				// The tool id bits are spread out in a strange pattern, presumably because tool type started out as 12 bits
+				// and was later padded to 24 by placing additional bits in the last half of data[7] and the first
+				// half of data[8].
+				// data[2]  [3]      [4]      [5]      [6]      [7]      [8]
+				// TTTTTTTT TTTTSSSS SSSSSSSS SSSSSSSS SSSSSSSS SSSSTTTT TTTT????
+				// Bit numbers (a 3 above a 1 means bit 31):
+				// 11987654 32103322 22222222 11111111 11987654 32102222 1111
+				// 10           1098 76543210 98765432 10           3210 9876
+
+				// Some places that call do_send_protocol5_packet don't set the toolid or serial, so in
+				// that case, assign generic values.
+				if(penEvent.tool_id == 0) {
+					if(penEvent.eraser) {
+						penEvent.tool_id = 0x85A;
+					}
+					else {
+						penEvent.tool_id = 0x852;
+					}
+				}
+				if(penEvent.tool_serial_num == 0) {
+					penEvent.tool_serial_num = 0x16002CDU; // This serial taken from the captured Intuos 2 data.
+				}
+				
+				*pbuf++ = penEvent.tool_id >> 4; // data[2]
+				*pbuf++ = ((penEvent.tool_id & 0x0f) << 4) | ((penEvent.tool_serial_num & 0xf0000000) >> 28); // data[3]
+				*pbuf++ = (penEvent.tool_serial_num & 0xff00000) >> 20; // data[4]
+				*pbuf++ = (penEvent.tool_serial_num & 0xff000) >> 12; // data[5]
+				*pbuf++ = (penEvent.tool_serial_num & 0xff0) >> 4; // data[6]
+				*pbuf++ = ((penEvent.tool_serial_num & 0xf) << 4) | ((penEvent.tool_id & 0xf00000) >> 20); // data[7]
+				*pbuf++ = (penEvent.tool_id & 0xf0000) >> 12; // data[8]
+
+				// I don't think data[9] means anything, but the captured data contained 0, so set to 0.
+				*pbuf++ = 0; // data[9]
+
 
 				if(console::console_enabled)
 				{
@@ -464,6 +724,14 @@ namespace WacomUsb
 			return;
 		}
 
+		#ifdef DEBUG_USB_DATA
+			console::print("SU: "); // Sending USB data.  Keep these debug statements short or it seems to overflow the USB buffer
+			for(int i = 0; i < 10; i++) {
+				console::printHex(protocol5_packet.buffer[i], 2);
+				console::print(" ");
+			}
+			console::println();
+		#endif
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
 			UsbUtil::send_packet_fill_idle_time(protocol5_packet.buffer, 10, WACOM_PEN_ENDPOINT, 50);
 	}

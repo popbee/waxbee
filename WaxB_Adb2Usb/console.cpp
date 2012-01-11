@@ -152,21 +152,20 @@ namespace console
 		return '0'+value;
 	}
 
-	void printHex(uint16_t number, uint8_t hexdigits)
+	void printHex(uint32_t number, uint8_t hexdigits)
 	{
 		if(!console_enabled)
 			return;
 
-		if(hexdigits >= 4)
-			do_print(hexDigit((number>>12) & 0xf));
+		if(hexdigits > 8) {
+			print("Error in printHex: hexdigits > 8");
+			hexdigits = 8;
+		}
 
-		if(hexdigits >= 3)
-			do_print(hexDigit((number>>8) & 0xf));
-
-		if(hexdigits >= 2)
-			do_print(hexDigit((number>>4) & 0xf));
-
-		do_print(hexDigit(number & 0xf));
+		while(hexdigits) {
+			do_print(hexDigit((number>>(4 * (hexdigits - 1))) & 0xf));
+			hexdigits--;
+		}
 	}
 
 	void flush()

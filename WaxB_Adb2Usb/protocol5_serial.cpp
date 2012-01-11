@@ -154,12 +154,15 @@ namespace protocol5_serial
 
 //		console::print(' ');
 //		console::printHex(data, 2);
-		console::print((char)data);
+		//console::print("Rcvd serial data: ");
+		//console::print((char)data);
 
 		switch(itsCurState)
 		{
 			case initial:
 			case modelversion:
+				console::print((char)data);
+
 				if(datalen == 0 && data != '~')
 					break; // wait for first valid character
 
@@ -216,22 +219,46 @@ namespace protocol5_serial
 				break;
 			case packet:
 			{
-				if(data & 0x80)
+				// On my GD-1218-R, the first packet from the 4D mouse always seems to be truncated after 6 bytes.
+				// I've reproduced this many times.  I'm guessing it's a firmware bug maybe caused by the buttons
+				// not being initialized or something?
+				// The (?!) means it found HEADER_BIT in a byte that should have been part of the first 9-byte packet.
+				// AA begins the 4D mouse "second packet".  I've verified in a serial driver that any byte after the
+				// first that contains HEADER_BIT makes the packet invalid and it should be ignored, which is what we
+				// do.
+				// RS: A8 43 48 00 00 00
+				// RS: (?!)AA 43 60 2B 74 48 00 00 00
+				// 
+				// Actually, the same thing happens when a stylus comes into range:
+				// RS: C2 41 08 00 10 0C 7F 30 00
+				// Serial Tool ID: 0822
+				// Tool serial #: 001019FD
+				// SU: 02 C2 85 20 01 01 9F D0 00 00
+				// RS: A0 27 70 00 00 00
+				// RS: (?!)E0 27 1C 6A 59 70 03 07 07
+				if(data & HEADER_BIT)
 				{
-					console::println();
-					console::print("*");
+					#ifdef DEBUG_SERIAL_DATA
+						console::println();
+						console::print("RS: "); // Receiving serial data.  Keep these debug statements short or it seems to overflow the USB buffer
+					#endif
 
-					if(datalen > 0)
-						console::print("(?!)");
+					if(datalen > 0) {
+						console::print("(?!)"); // UNEXPECTED HEADER_BIT IN DATA PACKET
+					}
 					datalen = 0;
 				}
 				else if(datalen == 0)
 				{
-					console::println("(*!)");
+					console::printHex(data, 2);
+					console::println("(*!)"); // FIRST BYTE IN DATA PACKET DID NOT CONTAIN HEADER_BIT
 					return;		// wait for the first valid byte
 				}
 
-				console::printHex(data, 2);
+				#ifdef DEBUG_SERIAL_DATA
+					console::printHex(data, 2);
+					console::print(" ");
+				#endif
 
 				if(datalen < WACOM_PKGLEN_PROTOCOL5)
 				{
@@ -241,10 +268,14 @@ namespace protocol5_serial
 
 				if(datalen == WACOM_PKGLEN_PROTOCOL5)
 				{
-					// event consumed
+					// Packet complete.  Act on it.
+					penEvent.serial_packet_first_byte = buffer[0];
+
 					datalen = 0;
 
-					console::println();
+					#ifdef DEBUG_SERIAL_DATA
+						console::println();
+					#endif
 
 					if ((buffer[0] & 0xFC) == 0xC0)
 					{
@@ -252,56 +283,92 @@ namespace protocol5_serial
 
 						in_proximity = 1;
 
-						uint16_t toolid =	(((uint16_t)buffer[1] & 0x7f) << 5) |
+						uint16_t tool_id =	(((uint16_t)buffer[1] & 0x7f) << 5) |
 									(((uint16_t)buffer[2] & 0x7c) >> 2);
 
-/*
-						uint32_t serial =	(((uint32_t)buffer[2] & 0x03) << 30) |
+
+						uint32_t tool_serial_num =	(((uint32_t)buffer[2] & 0x03) << 30) |
 									(((uint32_t)buffer[3] & 0x7f) << 23) |
 									(((uint32_t)buffer[4] & 0x7f) << 16) |
 									(((uint32_t)buffer[5] & 0x7f) <<  9) |
 									(((uint32_t)buffer[6] & 0x7f) <<  2) |
 									(((uint32_t)buffer[7] & 0x60) >>  5);
-*/
-						console::printHex(toolid, 8);
+
+						console::print("Serial Tool ID: ");
+						console::printHex(tool_id, 6);
+						console::println();
+						console::print("Tool serial #: ");
+						console::printHex(tool_serial_num, 8);
+						console::println();
 
 						eraser_mode = 0;
+						uint32_t usb_tool_id = 0;
 
-						switch (toolid)
+						// This bit of code comes from the linux serial driver and it basically makes
+						// us discard the first packet received for the 4D mouse.  Technically it sets
+						// discard_first = 1 for all tools that aren't in the 0x800 range of pens, but
+						// discard_first is only used when looking at the first 4D mouse packet.
+						// I assume this has to do with the invalid first packet we get with
+						// the 4D mouse because discard_first is only checked when interpreting that 
+						// packet and only when device type is 4D mouse and discard_first is only cleared 
+						// when the 4D mouse "second packet" is received.
+						if ((tool_id & 0xf06) != 0x802) {
+							penEvent.discard_first = 1;
+						}
+
+						switch (tool_id)
 						{
-							case 0x007: // 2D Mouse
-							case 0x09C: // ?? Mouse
-							case 0x094: // 4D Mouse
-							case 0x096: // Lens cursor
+							case 0x007: // 2D Mouse (Intuos1 or 2)
+							case 0x09C: // ?? Mouse (maybe "3D mouse", a 4D mouse without scroll wheel?)
+							case 0x094: // 4D Mouse (Intuos1 or 2)
+							case 0x096: // Lens cursor (Intuos1 or 2)
 								penEvent.is_mouse = 1;
+
+								// Oddly, 0x094 seems to represent both Intuos1 and Intuos2 4D mice.  I also tried 0x09C and
+								// the Wacom control panel shows the same picture of an Intuos2 4D mouse, says it's a 4D mouse
+								// in the description, and rotation of the mouse is detected, but the scroll wheel is not.
+								// Since there is no Intuos2 lens cursor listed in the Linux driver, they must use 0x096
+								// for both Intuos1 and Intuos2.
+								// The same thing seems to hold for 2D mice.
+								usb_tool_id = tool_id;
 								break;
 
 							case 0x812: // Intuos2 ink pen XP-110-00A
 							case 0x012: // Inking pen
-							case 0x822: // Intuos Pen GP-300E-01H
+							case 0x822: // Intuos1 Pen GP-300E-01H
 							case 0x852: // Intuos2 Grip Pen XP-501E-00A
-							case 0x842: // added from Cheng
-							case 0x022:
+							case 0x842: // Designer pen
+							case 0x022: // Intuos1 pen
 							case 0x832: // Intuos2 stroke pen XP-120-00A
 							case 0x032: // Stroke pen
 
-							case 0x112: // Airbrush
 							default: // Unknown tool
 								penEvent.is_mouse = 0;
+								usb_tool_id = 0x852;
 								break;
 
-							case 0x82a:
-							case 0x85a:
-							case 0x91a:
-							case 0x0fa: // Eraser
+							case 0x112: // Airbrush (generic?)
+							case 0xd12: // Intuos1 airbrush
+							case 0x912: // Intuos2 airbrush							
+								penEvent.is_mouse = 0;
+								usb_tool_id = 0x912;
+								break;
+
+							case 0x82a: // Intuos1 eraser
+							case 0x91a: // Intuos1 eraser
+							case 0xd1a: // Intuos1 eraser
+							case 0x0fa: // Intuos1 eraser
+							case 0x85a: // Intuos2 eraser
 								eraser_mode = 1;
+								usb_tool_id = 0x85A;
 								break;
 						}
 
-						// do nothing. (at least for now)
-
-						// TODO: adapt code to better reflect
-						// intuos2 Serial -> intuos2 USB (pass the serial number/tool ids, etc.)
+						penEvent.proximity = 1;
+						penEvent.eraser = eraser_mode;
+						penEvent.tool_id = usb_tool_id;
+						penEvent.tool_serial_num = tool_serial_num;
+						Pen::input_pen_event(penEvent);
 					}
 					else if ((buffer[0] & 0xFE) == 0x80)
 					{
@@ -311,13 +378,8 @@ namespace protocol5_serial
 						penEvent.proximity = 0;
 						Pen::input_pen_event(penEvent);
 					}
-					else if (((buffer[0] & 0xB8) == 0xA0) || ((buffer[0] & 0xBE) == 0xB4))
-					{
-						// normal packet
-
-						penEvent.proximity = 1;
-						penEvent.eraser = eraser_mode;
-
+					else {
+						// Pen and mouse packets all contain the X/Y data in the same bits:
 						penEvent.x =	(((uint16_t)buffer[1] & 0x7f) <<  9) |
 								(((uint16_t)buffer[2] & 0x7f) <<  2) |
 								(((uint16_t)buffer[3] & 0x60) >>  5);
@@ -326,44 +388,105 @@ namespace protocol5_serial
 								(((uint16_t)buffer[4] & 0x7f) <<  4) |
 								(((uint16_t)buffer[5] & 0x78) >>  3);
 
-						// rotation   min  = -900, max = 899
-						penEvent.rotation_z =  (((int16_t)buffer[6] & 0x0f) << 7) |
-									((int16_t)buffer[7] & 0x7f);
-
-						if (penEvent.rotation_z < 900)
-							penEvent.rotation_z = -penEvent.rotation_z;
-						else
-							penEvent.rotation_z = 1799 - penEvent.rotation_z;
-
-						// tilt
-
-						penEvent.tilt_x = (buffer[7] & 0x3F);
-						if (buffer[7] & 0x40)
-							penEvent.tilt_x -= 0x40;
-
-						penEvent.tilt_y = (buffer[8] & 0x3F);
-						if (buffer[8] & 0x40)
-							penEvent.tilt_y -= 0x40;
-
-						// pen packet
-						if ((buffer[0] & 0xB8) == 0xA0)
+						if (((buffer[0] & 0xB8) == 0xA0) || ((buffer[0] & 0xBE) == 0xB4))
 						{
-							penEvent.pressure = 	(((uint16_t)buffer[5] & 0x07) << 7) |
-										 ((uint16_t)buffer[6] & 0x7f);
+							// pen packet
 
-							penEvent.touch = (penEvent.pressure > 10) ? 1 : 0;
-							penEvent.button0 = (buffer[0] & 0x02) ? 1 : 0;
-							penEvent.button1 = (buffer[0] & 0x04) ? 1 : 0;
-						}
-/*						else // 2nd airbrush packet
-						{
-							wheel = ((((int)buffer[5] & 0x07) << 7) |
-									((int)buffer[6] & 0x7f));
-						}
-*/
-						penEvent.touch = (buffer[3] & 0x08) ? 1:0; // shouldn't we look at the pressure instead?
+							penEvent.eraser = eraser_mode;
 
-						Pen::input_pen_event(penEvent);
+							// rotation   min  = -900, max = 899
+							penEvent.rotation_z =  (((int16_t)buffer[6] & 0x0f) << 7) |
+										((int16_t)buffer[7] & 0x7f);
+
+							if (penEvent.rotation_z < 900)
+								penEvent.rotation_z = -penEvent.rotation_z;
+							else
+								penEvent.rotation_z = 1799 - penEvent.rotation_z;
+
+							// tilt
+
+							penEvent.tilt_x = (buffer[7] & 0x3F);
+							if (buffer[7] & 0x40)
+								penEvent.tilt_x -= 0x40;
+
+							penEvent.tilt_y = (buffer[8] & 0x3F);
+							if (buffer[8] & 0x40)
+								penEvent.tilt_y -= 0x40;
+
+							// pen packet
+							if ((buffer[0] & 0xB8) == 0xA0)
+							{
+								penEvent.pressure = 	(((uint16_t)buffer[5] & 0x07) << 7) |
+											 ((uint16_t)buffer[6] & 0x7f);
+
+								penEvent.touch = (penEvent.pressure > 10) ? 1 : 0;
+								penEvent.button0 = (buffer[0] & 0x02) ? 1 : 0;
+								penEvent.button1 = (buffer[0] & 0x04) ? 1 : 0;
+							}
+							else // 2nd airbrush packet
+							{
+								penEvent.abswheel = ((((int)buffer[5] & 0x07) << 7) |
+										((int)buffer[6] & 0x7f));
+							}
+	
+							penEvent.proximity = ((uint16_t)buffer[0] & PROXIMITY_BIT);
+							penEvent.touch = (buffer[3] & 0x08) ? 1:0; // shouldn't we look at the pressure instead?
+
+							//if(penEvent.proximity) {
+								Pen::input_pen_event(penEvent);
+							//}
+						}
+
+						/* 4D mouse 1st packet or Lens cursor packet or 2D mouse packet*/
+						else if (((buffer[0] & 0xbe) == 0xa8) || ((buffer[0] & 0xbe) == 0xb0)) {
+							//penEvent.proximity = 1;
+							int have_data = 0;
+							penEvent.is_mouse = 1;
+							
+							penEvent.tilt_x = 0;
+							penEvent.tilt_y = 0;
+
+							if(MOUSE_4D(penEvent)) {     /* 4D mouse */
+								penEvent.throttle = ((((uint16_t)buffer[5] & 0x07) << 7) | ((uint16_t)buffer[6] & 0x7f));
+								if ((uint16_t)buffer[8] & 0x08) penEvent.throttle = -penEvent.throttle;
+								penEvent.buttons = ((((uint16_t)buffer[8] & 0x70) >> 1) | ((uint16_t)buffer[8] & 0x07));
+								have_data = !penEvent.discard_first;
+							} else if (LENS_CURSOR(penEvent)) {   /* Lens cursor */
+								penEvent.buttons = (uint16_t)buffer[8];
+								have_data = 1;
+							} else if (MOUSE_2D(penEvent)) {      /* 2D mouse */
+								penEvent.buttons = ((uint16_t)buffer[8] & 0x1C) >> 2;
+								penEvent.relwheel = -((uint16_t)buffer[8] & 1) + (((uint16_t)buffer[8] & 2) >> 1);
+								have_data = 1; /* must send since relwheel is reset */
+							}
+
+							// On 4D mouse, button bits are:
+							// 0: left, 1: middle, 2: right, 3: lower right, 4: lower left.
+							//console::print("Buttons: ");
+							//console::printHex(penEvent.buttons, 8);
+							//console::println();
+
+
+							penEvent.proximity = ((uint16_t)buffer[0] & PROXIMITY_BIT);
+							if(have_data) { // && penEvent.proximity) {
+								Pen::input_pen_event(penEvent);
+							}
+						}
+						/* 4D mouse 2nd packet */
+						else if (((uint16_t)buffer[0] & 0xbe) == 0xaa) {
+							int have_data = 0;
+							penEvent.is_mouse = 1;
+
+							penEvent.rotation_z = ((((uint16_t)buffer[6] & 0x0f) << 7) | ((uint16_t)buffer[7] & 0x7f));
+							//if (penEvent.rotation_z < 900) penEvent.rotation_z = -penEvent.rotation_z;
+							//else penEvent.rotation_z = 1799 - penEvent.rotation_z;
+							penEvent.proximity = ((uint16_t)buffer[0] & PROXIMITY_BIT);
+							have_data = 1;
+							penEvent.discard_first = 0;
+							if(have_data) { // && penEvent.proximity) {
+								Pen::input_pen_event(penEvent);
+							}
+						}
 					}
 
 					// TODO: understand the extra logic from the linux driver (wacserial.c)
@@ -372,7 +495,7 @@ namespace protocol5_serial
 					/* we might have been fooled by tip and second
 					 * sideswitch when it came into prox */
 
-					console::println();
+					//console::println();
 				}
 				break;
 			}

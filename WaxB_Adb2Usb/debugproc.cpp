@@ -134,7 +134,7 @@ namespace DebugProc
 	static void initActivity()
 	{
 		addr_current = debugdata_addr + 7;
-		interval_10ms = pauseDelayMs / 10;
+		interval_10ms = pauseDelayMs; // / 10;
 		LED_ON;
 	}
 
