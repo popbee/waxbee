@@ -661,29 +661,37 @@ namespace WacomUsb
 
 				// Some places that call do_send_protocol5_packet don't set the toolid or serial, so in
 				// that case, assign generic values.
-				if(penEvent.tool_id == 0) {
-					if(penEvent.eraser) {
-						penEvent.tool_id = 0x85A;
-					}
-					else {
-						penEvent.tool_id = 0x852;
-					}
+				uint32_t tool_id;
+
+				if(penEvent.tool_id == 0)
+				{
+					if(penEvent.eraser)
+						tool_id = 0x85A; // Eraser tool id
+					else
+						tool_id = 0x852; // Pen tool id
 				}
-				if(penEvent.tool_serial_num == 0) {
-					penEvent.tool_serial_num = 0x16002CDU; // This serial taken from the captured Intuos 2 data.
+				else
+				{
+					tool_id = penEvent.tool_id;
 				}
+
+				uint32_t tool_serial_num;
+
+				if(penEvent.tool_serial_num == 0)
+					tool_serial_num = 0x16002CDU; // Common Intuos 2 pen serial number (same for both the pen and eraser side)
+				else
+					tool_serial_num = penEvent.tool_serial_num;
 				
-				*pbuf++ = penEvent.tool_id >> 4; // data[2]
-				*pbuf++ = ((penEvent.tool_id & 0x0f) << 4) | ((penEvent.tool_serial_num & 0xf0000000) >> 28); // data[3]
-				*pbuf++ = (penEvent.tool_serial_num & 0xff00000) >> 20; // data[4]
-				*pbuf++ = (penEvent.tool_serial_num & 0xff000) >> 12; // data[5]
-				*pbuf++ = (penEvent.tool_serial_num & 0xff0) >> 4; // data[6]
-				*pbuf++ = ((penEvent.tool_serial_num & 0xf) << 4) | ((penEvent.tool_id & 0xf00000) >> 20); // data[7]
-				*pbuf++ = (penEvent.tool_id & 0xf0000) >> 12; // data[8]
+				*pbuf++ = tool_id >> 4; // data[2]
+				*pbuf++ = ((tool_id & 0x0f) << 4) | ((tool_serial_num & 0xf0000000) >> 28); // data[3]
+				*pbuf++ = (tool_serial_num & 0xff00000) >> 20; // data[4]
+				*pbuf++ = (tool_serial_num & 0xff000) >> 12; // data[5]
+				*pbuf++ = (tool_serial_num & 0xff0) >> 4; // data[6]
+				*pbuf++ = ((tool_serial_num & 0xf) << 4) | ((tool_id & 0xf00000) >> 20); // data[7]
+				*pbuf++ = (tool_id & 0xf0000) >> 12; // data[8]
 
 				// I don't think data[9] means anything, but the captured data contained 0, so set to 0.
-				*pbuf++ = 0; // data[9]
-
+				*pbuf = 0; // data[9]
 
 				if(console::console_enabled)
 				{
