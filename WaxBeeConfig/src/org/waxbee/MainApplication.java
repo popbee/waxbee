@@ -61,7 +61,7 @@ import org.waxbee.teensy.extdata.WaxbeeConfig;
 @SuppressWarnings("serial")
 public class MainApplication extends JFrame
 {
-	private static final String VERSION = "0.11a";
+	private static final String VERSION = "0.11b";
 	
 	private static final String TEMPLATE_EXTENSION_PATTERN = "*.tmpl.txt";
 
