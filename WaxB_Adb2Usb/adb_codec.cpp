@@ -111,7 +111,7 @@
 #define BIT_0_HIGH_TIME_US		35
 #define BIT_1_LOW_TIME_US		35
 #define BIT_1_HIGH_TIME_US		65
-#define STOP2START_TIME_US		STOP2START_TIME_MIN_US
+#define STOP2START_TIME_US		85 // STOP2START_TIME_MIN_US  // GD tablet responds in ~100us (!!)
 
 
 namespace ADB
