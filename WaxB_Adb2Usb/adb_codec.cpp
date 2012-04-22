@@ -97,7 +97,7 @@
 
 #define	STOP_BIT_TIME_MAX_US		(BIT_TIME_MAX_US*70/100)
 
-#define STOP2START_TIME_MIN_US		140
+#define STOP2START_TIME_MIN_US		85  // spec says 140 but GD tablet responds under 100us(!)
 #define STOP2START_TIME_MAX_US		260
 
 #define SRQ_MAX_US			330
@@ -111,7 +111,7 @@
 #define BIT_0_HIGH_TIME_US		35
 #define BIT_1_LOW_TIME_US		35
 #define BIT_1_HIGH_TIME_US		65
-#define STOP2START_TIME_US		85 // STOP2START_TIME_MIN_US  // GD tablet responds in ~100us (!!)
+#define STOP2START_TIME_US		150
 
 
 namespace ADB

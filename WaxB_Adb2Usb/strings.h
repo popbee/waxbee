@@ -34,6 +34,12 @@ extern uint8_t PROGMEM usbdescriptor_string0[4];
 #endif
 
 //----------------------------------------------------------------
+// waxbee_main.cpp
+//----------------------------------------------------------------
+
+PSTRING(STR_WAXBEE_WELCOME, "WaxBee 0.11c -- bzz! bzz!\nSerial/ADB tablet to USB converter.");
+
+//----------------------------------------------------------------
 // adb_controller.cpp
 //----------------------------------------------------------------
 
@@ -156,12 +162,6 @@ PSTRING(STR_USBUTIL_PACKET_SIZE_TOO_LARGE, "UsbUtil: Packet size too large");
 
 PSTRING(STR_USB_PACKET_OUT_OF_RANGE_PACKET_ALL_ZEROS, "[USB Packet - Out of range packet (all zeros)]");
 PSTRING(STR_USB_PACKET_IN_RANGE_PACKET_ERASER, "[USB Packet - In Range packet, eraser=");
-
-//----------------------------------------------------------------
-// waxbee_main.cpp
-//----------------------------------------------------------------
-
-PSTRING(STR_WAXBEE_WELCOME, "WaxBee -- bzz! bzz!\nSerial/ADB tablet to USB converter.");
 
 //----------------------------------------------------------------
 
