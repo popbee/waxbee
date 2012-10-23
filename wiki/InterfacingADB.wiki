@@ -36,4 +36,4 @@ If you have a problem connecting, try running the Teensy loader application (fro
 
   * Run the WaxBee configuration tool, follow the instructions (read the bundled html for more help).
 
-  * The Wacom driver of the emulated USB tablet can be installed/re-installed at any time. Always pick the latest drivers.
+  * The Wacom driver of the emulated USB tablet can be installed/re-installed at any time. Always pick the latest drivers. (NOTE: pick the latest driver that supports the emulated hardware (for your OS), that is, an Intuos 2 as of this writing.)
