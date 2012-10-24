@@ -103,9 +103,9 @@
 #define SRQ_MAX_US			330
 //------------------------------------------
 
-#define RESET_IDLE_US			300
-#define IDLE_TIME_US			50
-#define ATTENTION_TIME_US		ATTENTION_TIME_MIN_US
+#define RESET_IDLE_US			300 // 10000 // 300
+#define IDLE_TIME_US			50 // 10000 // 50
+#define ATTENTION_TIME_US		800 // ATTENTION_TIME_MIN_US
 #define SYNC_TIME_US			SYNC_TIME_MIN_US
 #define BIT_0_LOW_TIME_US		65
 #define BIT_0_HIGH_TIME_US		35

@@ -123,7 +123,7 @@ namespace DebugProc
 	
 	void proxOutTrigger()
 	{
-		console::printlnP(STR_PROXOUTTRIGGER);
+//		console::printlnP(STR_PROXOUTTRIGGER);
 
 		if(!trigOnProxOut)
 			return;

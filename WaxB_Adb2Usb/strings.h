@@ -37,7 +37,7 @@ extern uint8_t PROGMEM usbdescriptor_string0[4];
 // waxbee_main.cpp
 //----------------------------------------------------------------
 
-PSTRING(STR_WAXBEE_WELCOME, "WaxBee 0.11c -- bzz! bzz!\nSerial/ADB tablet to USB converter.");
+PSTRING(STR_WAXBEE_WELCOME, "WaxBee 0.11d -- bzz! bzz!\nSerial/ADB tablet to USB converter.");
 
 //----------------------------------------------------------------
 // adb_controller.cpp

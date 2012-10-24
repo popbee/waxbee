@@ -25,6 +25,9 @@
 
 #include <util/delay.h>
 
+//uncomment the following to perform some ADB analysis for GD tablets
+//#define GD_TRYOUTS
+
 namespace ADB
 {
 	ADB::AdbPacket adbPacket;
@@ -127,8 +130,19 @@ namespace ADB
 		_4L1_response,
 		_4T1_check,	// [4T1:386B50003C000617]
 		_4T1_check_response,
+#ifdef GD_TRYOUTS
+		_4L2_538C,
+		_4L2_538C_response,
+		_4L2_308C,
+		_4L2_308C_response,
+#endif
 		status,		// [4T0:800000003CFF0000], [4T0]
 		status_response
+#ifdef GD_TRYOUTS
+		,
+		status2,
+		status_response2
+#endif
 	};
 
 	adbControllerState itsCurAdbState = poweron;
@@ -223,6 +237,8 @@ namespace ADB
 			case identify_response:
 			{
 				console::printlnP(STR_IDENTIFY_RESPONSE);
+				dump_adb_packet(true);
+
 				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
 				{
 					itsCurAdbState = identify;
@@ -256,6 +272,7 @@ namespace ADB
 
 			case _4L3_response:
 				console::printlnP(STR_4L3_RESPONSE);
+				dump_adb_packet(true);
 				if(adbLastErrorStatus != 0)
 				{
 					itsCurAdbState = _4L3;
@@ -278,6 +295,7 @@ namespace ADB
 
 			case _4T3_response:
 				console::printlnP(STR_4T3_RESPONSE);
+				dump_adb_packet(true);
 				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
 				{
 					itsCurAdbState = _4T3;
@@ -302,6 +320,7 @@ namespace ADB
 
 			case _4L1_response:
 				console::printlnP(STR_4L1_RESPONSE);
+				dump_adb_packet(true);
 				if(adbLastErrorStatus != 0)
 				{
 					itsCurAdbState = _4L1;
@@ -324,12 +343,56 @@ namespace ADB
 
 			case _4T1_check_response:
 				console::printlnP(STR_4T1_CHECK_RESPONSE);
+				dump_adb_packet(true);
 				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
 				{
 					itsCurAdbState = _4T1_check;
 					return false; // re-enter immediately the controller
 				}
+#ifdef GD_TRYOUTS
+			case _4L2_538C:
+				adbPacket.address = 4;
+				adbPacket.command = ADB_COMMAND_LISTEN;
+				adbPacket.parameter = 2;
+				adbPacket.datalen = 2;
+				adbPacket.data[0] = 0x53;
+				adbPacket.data[1] = 0x8C;
 
+				ADB::initiateAdbTransfer(&adbPacket, adb_transaction_done);
+
+				itsCurAdbState = _4L2_538C_response;
+				break;
+
+			case _4L2_538C_response:
+				dump_adb_packet(true);
+				if(adbLastErrorStatus != 0)
+				{
+					itsCurAdbState = _4L2_538C;
+					return false; // re-enter immediately the controller
+				}
+
+			case _4L2_308C:
+				adbPacket.address = 4;
+				adbPacket.command = ADB_COMMAND_LISTEN;
+				adbPacket.parameter = 2;
+				adbPacket.datalen = 2;
+				adbPacket.data[0] = 0x30;
+				adbPacket.data[1] = 0x8C;
+
+				ADB::initiateAdbTransfer(&adbPacket, adb_transaction_done);
+
+				itsCurAdbState = _4L2_308C_response;
+				break;
+
+			case _4L2_308C_response:
+				dump_adb_packet(true);
+				if(adbLastErrorStatus != 0)
+				{
+					itsCurAdbState = _4L2_308C;
+					return false; // re-enter immediately the controller
+				}
+
+#endif
 			case status:
 //				console::println("-- status");
 				// [4T0]
@@ -353,16 +416,18 @@ namespace ADB
 					itsCurAdbState = status;
 					return false; // re-enter immediately the controller
 				}
-
+#ifdef GD_TRYOUTS
+				dump_adb_packet(true);
+#endif
 				if(adbPacket.datalen == 0)
 				{
 					itsCurAdbState = status;
 					return false; // re-enter immediately the controller
 				}
-
+#ifndef GD_TRYOUTS
 				dump_adb_packet(false);
 				dump_adb_event();
-
+#endif
 				detectToolState();
 
 				// detect eraser mode
@@ -405,6 +470,35 @@ namespace ADB
 				itsCurAdbState = status;
 				return false; // re-enter immediately the controller
 			}
+#ifdef GD_TRYOUTS			
+			case status2:
+//				console::println("-- status");
+				// [4T2]
+
+				adbPacket.address = 4;
+				adbPacket.command = ADB_COMMAND_TALK;
+				adbPacket.parameter = 1;
+				adbPacket.datalen = 0;
+
+				ADB::initiateAdbTransfer(&adbPacket, adb_transaction_done);
+
+				itsCurAdbState = status_response2;
+				break;
+
+			case status_response2:
+			{
+				if(adbLastErrorStatus != 0)
+				{
+					itsCurAdbState = status;
+					return false; // re-enter immediately the controller
+				}
+
+				dump_adb_packet(true);
+
+				itsCurAdbState = status;
+				return false; // re-enter immediately the controller
+			}
+#endif
 		}
 
 		// done for now
