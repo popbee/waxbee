@@ -1,10 +1,10 @@
 #------------------------------------------------------------------------------
 # WaxBee configuration
 #------------------------------------------------------------------------------
-NAME = "XD-0608-R to Intuos2 6x8"
-DESCRIPTION = "Converts a serial Intuos2 6x8 (XD-0608-R) to a USB Intuos2 (XD-0608-U)"
-SLAVE_TABLET_X_MAX = 20320
-SLAVE_TABLET_Y_MAX = 16240
+NAME = "ADB UD-0608-A to Intuos2 6x8"
+DESCRIPTION = "Converts an ADB-based DigitizerII 6x8 (UD-0608-A) to a USB Intuos2 (XD-0608-U)"
+SLAVE_TABLET_X_MAX = 20480
+SLAVE_TABLET_Y_MAX = 15360
 USB_TABLET_X_MAX = 20320
 USB_TABLET_Y_MAX = 16240
 
@@ -20,13 +20,13 @@ USB_PORT = 1
 # 1: SLAVE_DIGITIZER
 # 2: DEBUG
 
-SERIAL_PORT = 1
+SERIAL_PORT = 0
 
 # Valid choices for ADB_PORT:
 # 0: DISABLED
 # 1: SLAVE_DIGITIZER
 
-ADB_PORT = 0
+ADB_PORT = 1
 USB_DEVICEDESC = @[
 0x12,		# bLength
 0x1,		# bDescriptorType
@@ -169,15 +169,13 @@ USB_STRING5 = ""
 # Valid choices for USB_PROTOCOL:
 # 4: WACOM_PROTOCOL4
 # 5: WACOM_PROTOCOL5
-# 6: WACOM_BAMBOO_TOUCH
 
 USB_PROTOCOL = 5
 USB_ENDPOINT0SIZE = 8
 USB_ENDPOINT1SIZE = 10
-USB_ENDPOINT2SIZE = 0
 USB_ENDPOINT3SIZE = 0
 USB_X_MIN = 0
-USB_Y_MIN = 0
+USB_Y_MIN = 1000
 USB_X_MAX = 20320
 USB_Y_MAX = 16240
 USB_X_ANCHOR_MIN = 0
@@ -197,12 +195,10 @@ USB_BUTTON_ENCODING = 0
 # 2: WACOM_ISDV4
 # 3: WACOM_PROTOCOL5
 # 4: WACOM_PROTOCOL4
-# 5: WACOM_ISDV4_TOUCH
-# 6: TOPAZ
 
-SLAVE_PROTOCOL = 3
+SLAVE_PROTOCOL = 1
 
-# (not implemented yet) Orientation affect X,Y coordinates but should also
+# Orientation affect X,Y coordinates but should also
 # affect "tilt" and "rotation" values accordingly.
 # NOTE: Data is rotated before MIN/MAX/ANCHOR transformation#
 
@@ -215,18 +211,13 @@ SLAVE_PROTOCOL = 3
 SLAVE_ORIENTATION = 0
 SLAVE_X_MIN = 0
 SLAVE_Y_MIN = 0
-SLAVE_X_MAX = 20320
-SLAVE_Y_MAX = 16240
+SLAVE_X_MAX = 20480
+SLAVE_Y_MAX = 15360
 SLAVE_X_ANCHOR_MIN = 0
 SLAVE_Y_ANCHOR_MIN = 0
 SLAVE_X_ANCHOR_MAX = 0
 SLAVE_Y_ANCHOR_MAX = 0
-SLAVE_PRESSURE_MAX = 1023
-
-# Configuration of special "Active" areas on the tablet (like a button).#
-SLAVE_ACTIVE_AREAS = @[
-]
-
+SLAVE_PRESSURE_MAX = 255
 
 # 16Mhz is not recommended with 3.3v supply.#
 
@@ -243,7 +234,7 @@ CPU_CORE_CLOCK = 0
 # 1: BAUD_19200
 # 2: BAUD_38400
 
-INITIAL_SERIAL_PORT_SPEED = 0
+INITIAL_SERIAL_PORT_SPEED = 1
 
 # Serial port speed during normal operation.#
 
@@ -252,7 +243,7 @@ INITIAL_SERIAL_PORT_SPEED = 0
 # 1: BAUD_19200
 # 2: BAUD_38400
 
-SERIAL_PORT_SPEED = 2
+SERIAL_PORT_SPEED = 1
 
 # Maximum time before packet gets repeated.
 # 0 to disable; max: 1200 ms#
