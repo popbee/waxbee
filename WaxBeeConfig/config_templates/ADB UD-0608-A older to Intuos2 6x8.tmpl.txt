@@ -1,12 +1,12 @@
 #------------------------------------------------------------------------------
 # WaxBee configuration
 #------------------------------------------------------------------------------
-NAME = "ADB UD-0608-A to Intuos2 12x18"
-DESCRIPTION = "Converts an ADB-based DigitizerII 6x8 (UD-0608-A) to a USB Intuos2 (XD-1218-U)"
-SLAVE_TABLET_X_MAX = 20480
-SLAVE_TABLET_Y_MAX = 15360
-USB_TABLET_X_MAX = 45720
-USB_TABLET_Y_MAX = 31680
+NAME = "ADB UD-0608-A older to Intuos2 6x8"
+DESCRIPTION = "Converts an ADB-based (older) Digitizer 6x8 (UD-0608-A) to a USB Intuos2 (XD-0608-U)"
+SLAVE_TABLET_X_MAX = 8192
+SLAVE_TABLET_Y_MAX = 6144
+USB_TABLET_X_MAX = 20320
+USB_TABLET_Y_MAX = 16240
 
 # Valid choices for USB_PORT:
 # 0: DISABLED
@@ -30,14 +30,14 @@ ADB_PORT = 1
 USB_DEVICEDESC = @[
 0x12,		# bLength
 0x1,		# bDescriptorType
-0x0,0x2,		# bcdUSB - the Graphire3 is set at 1.1 (0x110) -- hope that is not a problem
+0x0,0x2,		# bcdUSB
 0x0,		# bDeviceClass
 0x0,		# bDeviceSubClass
 0x0,		# bDeviceProtocol
 0x8,		# bMaxPacketSize0 for endpoint 0
 0x6a,0x5,		# vendor id - WACOM Co., Ltd.
-0x45,0x0,		# product id - Graphire3 6x8
-0x26,0x1,		# bcdDevice - "version number" of the Wacom XD-1218-U
+0x42,0x0,		# product id - Intuos2 6x8
+0x26,0x1,		# bcdDevice - "version number" of the Wacom
 0x1,		# iManufacturer
 0x2,		# iProduct
 0x0,		# iSerialNumber
@@ -157,8 +157,11 @@ USB_HIDREPORTDESC = @[
 0xc0		# END_COLLECTION
 ]
 
+USB_HIDREPORTDESC2 = @[
+]
+
 USB_STRING1 = "WACOM"
-USB_STRING2 = "XD-1218-U - WaxBee emulation"
+USB_STRING2 = "XD-0608-U - WaxBee emulation"
 USB_STRING3 = ""
 USB_STRING4 = ""
 USB_STRING5 = ""
@@ -172,14 +175,20 @@ USB_ENDPOINT0SIZE = 8
 USB_ENDPOINT1SIZE = 10
 USB_ENDPOINT3SIZE = 0
 USB_X_MIN = 0
-USB_Y_MIN = 1190
-USB_X_MAX = 45720
-USB_Y_MAX = 31680
+USB_Y_MIN = 1000
+USB_X_MAX = 20320
+USB_Y_MAX = 16240
 USB_X_ANCHOR_MIN = 0
 USB_Y_ANCHOR_MIN = 0
 USB_X_ANCHOR_MAX = 0
 USB_Y_ANCHOR_MAX = 0
 USB_PRESSURE_MAX = 1023
+
+# Valid choices for USB_BUTTON_ENCODING:
+# 0: NONE
+# 1: WACOM_INTUOS2_1218
+
+USB_BUTTON_ENCODING = 0
 
 # Valid choices for SLAVE_PROTOCOL:
 # 1: WACOM_ADB
@@ -202,13 +211,13 @@ SLAVE_PROTOCOL = 1
 SLAVE_ORIENTATION = 0
 SLAVE_X_MIN = 0
 SLAVE_Y_MIN = 0
-SLAVE_X_MAX = 20480
-SLAVE_Y_MAX = 15360
+SLAVE_X_MAX = 8192
+SLAVE_Y_MAX = 6144
 SLAVE_X_ANCHOR_MIN = 0
 SLAVE_Y_ANCHOR_MIN = 0
 SLAVE_X_ANCHOR_MAX = 0
 SLAVE_Y_ANCHOR_MAX = 0
-SLAVE_PRESSURE_MAX = 255
+SLAVE_PRESSURE_MAX = 120
 
 # 16Mhz is not recommended with 3.3v supply.#
 
@@ -240,6 +249,15 @@ SERIAL_PORT_SPEED = 1
 # 0 to disable; max: 1200 ms#
 IDLE_TIME_LIMIT_MS = 50
 
+# Power up setup of GPIO pins
+# Syntax: comma separated list of commands. Example:
+# C7^,D4-,P250,D4+,P500,D4-
+# D4 : Pin D4, + drive high (VCC), - drive low (GND), ^ pull-up, ~ floating, Pn Pause for "n" ms#
+GPIO_INIT = ""
+
+# Multi-purpose internal debug data. To be left empty for normal operation.#
+DEBUG_DATA = @[
+]
 
 #==============================================================================
 # A note about this file and its format for the braves that wants to tweak stuff
