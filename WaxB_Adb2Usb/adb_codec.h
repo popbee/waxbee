@@ -30,6 +30,8 @@ namespace ADB
 			byte data[8];
 			struct AdbWacomUD_R0 r0;
 			struct AdbWacomUD_R1 r1;
+
+			struct AdbWacomUD5_R0 ud5_r0;  // old Ultrapad protocol only sending 5 bytes per status
 		};
 
 		byte datalen;

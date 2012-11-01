@@ -32,6 +32,8 @@ namespace ADB
 {
 	ADB::AdbPacket adbPacket;
 	Pen::PenEvent penEvent;
+	bool isAdb5Event = false;
+
 	uint8_t adbLastErrorStatus = 0;
 
 	// true when the adb controller has work to do
@@ -74,14 +76,70 @@ namespace ADB
 		}
 
 		console::print(']');
+
+		for(int i=0; i<adbPacket.datalen; i++)
+		{
+			console::print(" | ");
+
+			int d = adbPacket.data[i];
+
+			for(int j=7; j>=4; j--)
+			{
+				if(d & 1<<j)
+					console::print('1');
+				else
+					console::print('0');
+			}
+
+			console::print(' ');
+
+			for(int j=3; j>=0; j--)
+			{
+				if(d & 1<<j)
+					console::print('1');
+				else
+					console::print('0');
+			}
+		}
+
+		console::print(" |");
+
 		if(newline)
 			console::println();
+	}
+
+	static void dump_adb5_event()
+	{
+		uint16_t x = (adbPacket.ud5_r0.x_msb << 8) | adbPacket.ud5_r0.x_lsb;
+		uint16_t y = (adbPacket.ud5_r0.y_msb << 8) | adbPacket.ud5_r0.y_lsb;
+
+		uint16_t p = adbPacket.ud5_r0.pressure & 0x7F;
+
+		console::print(" ADB5: ");
+
+		console::print(" touch=");
+		console::printNumber(adbPacket.ud5_r0.touch);
+		console::print(", button=");
+		console::printNumber(adbPacket.ud5_r0.button);
+		console::print(", pressure=");
+		console::printNumber(p);
+		console::print(", x=");
+		console::printNumber(x);
+		console::print(", y=");
+		console::printNumber(y);
+		console::println();
 	}
 
 	static void dump_adb_event()
 	{
 		if(!console::console_enabled)
 			return;
+
+		if(isAdb5Event)
+		{
+			dump_adb5_event();
+			return;
+		}
 
 		uint16_t x = (adbPacket.r0.x_msb << 8) | adbPacket.r0.x_lsb;
 		uint16_t y = (adbPacket.r0.y_msb << 8) | adbPacket.r0.y_lsb;
@@ -172,14 +230,21 @@ namespace ADB
 				// entering proximity
 				in_proximity = true;
 
-				if(adbPacket.r0.buttoncode == 4 ||
-				   adbPacket.r0.buttoncode == 5)
+				if(isAdb5Event)
 				{
-					eraser_mode = true;
+					eraser_mode = false;
 				}
 				else
 				{
-					eraser_mode = false;
+					if(adbPacket.r0.buttoncode == 4 ||
+					   adbPacket.r0.buttoncode == 5)
+					{
+						eraser_mode = true;
+					}
+					else
+					{
+						eraser_mode = false;
+					}
 				}
 
 				console::printP(STR_ENTERING_PROXIMITY_MODE);
@@ -411,6 +476,8 @@ namespace ADB
 			{
 //				console::println("-- status_response");
 
+				isAdb5Event = (adbPacket.datalen == 5);
+
 				if(adbLastErrorStatus != 0)
 				{
 					itsCurAdbState = status;
@@ -430,38 +497,60 @@ namespace ADB
 #endif
 				detectToolState();
 
-				// detect eraser mode
-				// first time the pen comes into proximity,
-				// check if button2 is set.
-
-				penEvent.proximity = adbPacket.r0.proximity;
-				penEvent.touch = adbPacket.r0.button0;
-
-				penEvent.eraser = eraser_mode;
-				if(eraser_mode)
+				if(isAdb5Event)
 				{
-					// side buttons inactive in eraser mode,
-					// so hard-code them in the pen event.
-					penEvent.button0 = 0;
+					// old ultrapads with no tilt. only sends 5 bytes instead of 8:
+					penEvent.proximity = adbPacket.ud5_r0.proximity;
+					penEvent.is_mouse = false;
+					penEvent.pressure = adbPacket.ud5_r0.pressure & 0x7F;
+
+					penEvent.touch = adbPacket.ud5_r0.touch;
+
+					penEvent.x = (adbPacket.ud5_r0.x_msb << 8) | adbPacket.ud5_r0.x_lsb;
+					penEvent.y = (adbPacket.ud5_r0.y_msb << 8) | adbPacket.ud5_r0.y_lsb;
+
+					penEvent.button0 = adbPacket.ud5_r0.button;
 					penEvent.button1 = 0;
+
+					penEvent.tilt_x = 0;
+					penEvent.tilt_y = 0;
+					penEvent.rotation_z = 0;
 				}
 				else
 				{
-					penEvent.button0 = adbPacket.r0.button1;
-					penEvent.button1 = adbPacket.r0.button2;
+					// detect eraser mode
+					// first time the pen comes into proximity,
+					// check if button2 is set.
+
+					penEvent.proximity = adbPacket.r0.proximity;
+					penEvent.touch = adbPacket.r0.button0;
+
+					penEvent.eraser = eraser_mode;
+					if(eraser_mode)
+					{
+						// side buttons inactive in eraser mode,
+						// so hard-code them in the pen event.
+						penEvent.button0 = 0;
+						penEvent.button1 = 0;
+					}
+					else
+					{
+						penEvent.button0 = adbPacket.r0.button1;
+						penEvent.button1 = adbPacket.r0.button2;
+					}
+
+					penEvent.is_mouse = !adbPacket.r0.is_stylus;
+
+					penEvent.pressure = adbPacket.r0.pressure + 128;
+
+					penEvent.x = (adbPacket.r0.x_msb << 8) | adbPacket.r0.x_lsb;
+					penEvent.y = (adbPacket.r0.y_msb << 8) | adbPacket.r0.y_lsb;
+
+					penEvent.tilt_x = adbPacket.r0.tiltx;
+					penEvent.tilt_y = adbPacket.r0.tilty;
+
+					penEvent.rotation_z = 0;
 				}
-
-				penEvent.is_mouse = !adbPacket.r0.is_stylus;
-
-				penEvent.pressure = adbPacket.r0.pressure + 128;
-
-				penEvent.x = (adbPacket.r0.x_msb << 8) | adbPacket.r0.x_lsb;
-				penEvent.y = (adbPacket.r0.y_msb << 8) | adbPacket.r0.y_lsb;
-
-				penEvent.tilt_x = adbPacket.r0.tiltx;
-				penEvent.tilt_y = adbPacket.r0.tilty;
-
-				penEvent.rotation_z = 0;
 
 				Pen::input_pen_event(penEvent);
 

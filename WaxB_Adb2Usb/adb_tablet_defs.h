@@ -44,6 +44,32 @@ namespace ADB
 		};
 	};
 
+	struct AdbWacomUD5_R0
+	{
+		struct
+		{
+			struct
+			{
+				unsigned x_msb:6;
+				unsigned unknown:1; // always one
+				unsigned proximity:1; // wild guess
+			};
+			uint8_t x_lsb;
+			struct
+			{
+				unsigned y_msb:6;
+				unsigned touch:1;
+				unsigned button:1; // side button
+			};
+			uint8_t y_lsb;
+			struct
+			{
+				unsigned pressure:7;
+				unsigned unused:1;
+			};
+		};
+	};
+
 	struct AdbWacomUD_R1
 	{
 		struct
