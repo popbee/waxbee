@@ -28,6 +28,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#include "featureinclusion.h"
+
 #include "avr_util.h"
 #include "adb_codec.h"
 #include "adb_controller.h"
@@ -49,24 +51,27 @@
 #include "debugproc.h"
 #include "usb_util.h"
 #include "strings.h"
+#include "wacom_usb.h"
 
 #include <avr/pgmspace.h>
 
 void send_initial_event()
 {
 	Pen::PenEvent penEvent;
+#ifdef TOUCH_SUPPORT
 	Touch::TouchEvent touchEvent;
-
+#endif
 	penEvent.proximity = 0;
 	penEvent.is_mouse = 0;
 
 	Pen::input_pen_event(penEvent);
-
+#ifdef TOUCH_SUPPORT
 	if(Touch::touchEnabled())
 	{
 		touchEvent.touch = false;
 		Touch::output_touch_event(touchEvent);
 	}
+#endif
 }
 
 bool adb_tablet;
@@ -112,7 +117,9 @@ ISR(TIMER0_OVF_vect)
 	// setup the timer0 to trigger again in 5ms or 200 times per second (200Hz)
 	TCNT0 = (0x100 - ((CPUCLOCK / TIMER0_PRESCALER_DIVIDER) / 200));
 
+#ifdef DEBUG_SUPPORT
 	DebugProc::timer_5ms_intr();
+#endif
 	UsbUtil::timer_5ms_intr();
 }
 
@@ -129,10 +136,13 @@ int main(void)
 
 	Frequency::setupCpuFrequency(); // set to 16Mhz if configured to do so
 
+#ifdef INITGPIO_SUPPORT
 	bool gpio_error = false;
+#endif
 
 	configureTimer0();
 
+#ifdef INITGPIO_SUPPORT
 	//------------------------------------
 	// custom GPIO initialization
 	//------------------------------------
@@ -141,15 +151,19 @@ int main(void)
 		// note that it failed.
 		gpio_error = true;
 	}
+#endif
 
 	serial_tablet = extdata_getValue8(EXTDATA_SERIAL_PORT) == EXTDATA_SERIAL_PORT_SLAVE_DIGITIZER;
+#ifdef ADB_SUPPORT
 	adb_tablet = extdata_getValue8(EXTDATA_ADB_PORT) == EXTDATA_ADB_PORT_SLAVE_DIGITIZER;
 
 	if(adb_tablet)
 		ADB::setup();
-
+#endif
 	// initialize the USB
 	usb_init();
+
+	WacomUsb::init();
 
 	//------------------------------------
 	// Enable Interrupts
@@ -171,10 +185,13 @@ int main(void)
 	Frequency::delay_ms(1000); // 1 second delay to let the host react
 	LED_OFF;
 
+#ifdef DEBUG_SUPPORT
 	console::init();
 
 	console::printlnP(STR_WAXBEE_WELCOME);
+#endif
 
+#ifdef INITGPIO_SUPPORT
 	//------------------------------------
 	// custom GPIO initialization
 	//------------------------------------
@@ -185,29 +202,39 @@ int main(void)
 		// halt and indefinitely blink led 3 times
 		error_condition(3);
 	}
+#endif
 
 	Pen::init();
 	PenDataTransform::init();
 
+#ifdef DEBUG_SUPPORT
 	debug_processing = DebugProc::init();
-
+#endif
 
 	if(serial_tablet)
 	{
 		switch(extdata_getValue8(EXTDATA_SLAVE_PROTOCOL))
 		{
+#ifdef SERIAL_ISDV4_SUPPORT
 			case EXTDATA_SLAVE_PROTOCOL_WACOM_ISDV4:
 				isdv4_serial::init();
 				break;
+#endif
+#ifdef SERIAL_PROTOCOL_IV_SUPPORT
 			case EXTDATA_SLAVE_PROTOCOL_WACOM_PROTOCOL4:
 				protocol4_serial::init();
 				break;
+#endif
+#ifdef SERIAL_PROTOCOL_V_SUPPORT
 			case EXTDATA_SLAVE_PROTOCOL_WACOM_PROTOCOL5:
 				protocol5_serial::init();
 				break;
+#endif
+#ifdef SERIAL_TOPAZ_SUPPORT
 			case EXTDATA_SLAVE_PROTOCOL_TOPAZ:
 				topaz_serial::init();
 				break;
+#endif
 		}
 	}
 
@@ -220,16 +247,18 @@ int main(void)
 
         while (1)
 	{
+#ifdef ADB_SUPPORT
         	if(adb_tablet)
         		ADB::adb_controller();
-
+#endif
         	if(serial_tablet)
         		serial::serialPortProcessing();
 
         	UsbUtil::main_loop(); // repeats usb packets to prevent idle time
-
+#ifdef DEBUG_SUPPORT
         	if(debug_processing)
         		DebugProc::processing();
+#endif
 	}
 }
 

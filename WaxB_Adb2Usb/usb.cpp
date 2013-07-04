@@ -27,6 +27,8 @@
  * THE SOFTWARE.
  */
 
+#include "featureinclusion.h"
+
 #include "usb.h"
 #include "usb_priv.h"
 #include "led.h"
@@ -219,7 +221,9 @@ ISR(USB_GEN_vect)
 		if (t)
 			tx_timeout_count = --t;
 
+#ifdef DEBUG_SUPPORT
 		usb_debug::start_of_frame_interrupt();
+#endif
 	}
 }
 
@@ -525,7 +529,9 @@ static inline bool handleHidEndpoint0()
 				case 5: // GetReport(5)
 				{
 					// Not sure what is this about.
-					// Intuos2 appears to return 0x05 80 00 00 00 00 00 00 00
+					// Intuos2 return 0x05 80 00 00 00 00 00 00 00
+					// Intuos5 return 0x05 80 00 00 00 00 00 00 00 00
+
 					UEDATX = 0x05;
 					UEDATX = 0x80;
 					UEDATX = 0x00;
@@ -535,14 +541,20 @@ static inline bool handleHidEndpoint0()
 					UEDATX = 0x00;
 					UEDATX = 0x00;
 
-					// send after 8 first bytes (endpoint0 buffer size)
-					usb_send_in();
+					if(endpointSize[0] == 8)
+					{
+						// send after 8 first bytes (endpoint0 buffer size)
+						usb_send_in();
 
-					// wait for host ready for (next) IN packet
-					if(!usb_wait_in_ready_or_abort())
-						return USBREQ_ABORT;
+						// wait for host ready for (next) IN packet
+						if(!usb_wait_in_ready_or_abort())
+							return USBREQ_ABORT;
+					}
 
 					UEDATX = 0x00;
+
+					if(req.wLength == 10)
+						UEDATX = 0x00;
 
 					usb_send_in();
 					break;
@@ -572,6 +584,35 @@ static inline bool handleHidEndpoint0()
 					usb_send_in();
 					break;
 				}
+				case 7: // GetReport(7) // Intuos5 (not sure what this is for)
+				{
+					// there are two lengths:  10 and 16. The data for len=10 appear to be the truncation of the len=16 one.
+
+					// 0x07 00 00 01 07 6D 01 15 00 00 00 04 00 00 00 00
+					UEDATX = 0x07;
+					UEDATX = 0x00;
+					UEDATX = 0x00;
+					UEDATX = 0x01;
+					UEDATX = 0x07;
+					UEDATX = 0x6D;
+					UEDATX = 0x01;
+					UEDATX = 0x15;
+					UEDATX = 0x00;
+					UEDATX = 0x00;
+
+					if(req.wLength == 16)
+					{
+						UEDATX = 0x00;
+						UEDATX = 0x04;
+						UEDATX = 0x00;
+						UEDATX = 0x00;
+						UEDATX = 0x00;
+						UEDATX = 0x00;
+					}
+
+					usb_send_in();
+					break;
+				}
 			}
 
 			return USBREQ_SUCCESS;
@@ -589,7 +630,7 @@ static inline bool handleHidEndpoint0()
 				{
 					case 2:
 					{
-						// The Graphire3, Intuos2 and Bamboo Wacom driver sends 0x02 0x02 here.
+						// The Graphire3, Intuos2, Intuos5 and Bamboo Wacom driver sends 0x02 0x02 here.
 
 						// I think this to "switch" to the digitizer protocol (Report ID 0x02)
 						// (by default, the Graphire3 sends standard HID Mouse packets)
@@ -597,7 +638,7 @@ static inline bool handleHidEndpoint0()
 					}
 					case 4:
 					{
-						// Intuos2 driver sends 0x04 0x01 when initializing, dunno what this is about.
+						// Intuos2 and Intuos5 drivers sends 0x04 0x01 when initializing, dunno what this is about.
 						// Some feature I suppose.
 						break;
 					}
@@ -607,13 +648,22 @@ static inline bool handleHidEndpoint0()
 						// Some feature I suppose.
 						break;
 					}
-					case 21:
+					case 21: // <- is this 0x21 or decimal 21 ??
 					{
 						// Bamboo driver sends 0x21 0x01 when initializing, dunno what this is about.
 						// Some feature I suppose.
 						break;
 					}
-	
+					case 13: // 0x0D
+					{
+						// intuos5 is sending 0x0D 0x04
+						break;
+					}
+					case 32: // 0x20
+					{
+						// Intuos5 is sending at init time:  20 14 01 00 00 00 00 00 00
+						break;
+					}
 				}
 				// ignore incoming bytes
 

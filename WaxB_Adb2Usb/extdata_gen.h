@@ -46,6 +46,7 @@
 #define EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL5	5	// Wacom Protocol 5
 #define EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL4	4	// Wacom Protocol 4
 #define EXTDATA_USB_PROTOCOL_WACOM_BAMBOO_TOUCH	6	// Wacom Bamboo Touch
+#define EXTDATA_USB_PROTOCOL_WACOM_INTUOS5	7	// Wacom Intuos 5
 
 #define EXTDATA_USB_ENDPOINT0SIZE	14	// USB Endpoint 0 Buffer size
 #define EXTDATA_USB_ENDPOINT1SIZE	15	// USB Endpoint 1 Buffer size

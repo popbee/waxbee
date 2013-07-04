@@ -13,6 +13,8 @@
 
 namespace WacomUsb
 {
+	void init();
+
 //	void send_protocol4_init_packet();
 	void send_protocol4_packet(Pen::PenEvent& penEvent);
 

@@ -8,8 +8,13 @@
 #ifndef CONSOLE_H_
 #define CONSOLE_H_
 
+#include "featureinclusion.h"
+
 #include <stdint.h>
 #include <avr/pgmspace.h>
+
+#define CONSOLE_PRINTP(x)	console::printP(x)
+#define CONSOLE_PRINTLNP(x)	console::printlnP(x)
 
 namespace console
 {

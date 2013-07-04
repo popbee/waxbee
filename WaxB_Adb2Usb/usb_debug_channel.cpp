@@ -4,6 +4,7 @@
  *  Created on: 2010-11-14
  *      Author: Bernard
  */
+#include "featureinclusion.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -11,10 +12,11 @@
 #include "led.h"
 #include "usb_debug_channel.h"
 
+#ifdef DEBUG_SUPPORT
+
 // the time remaining before we transmit any partially full
 // packet, or send a zero length packet.
 static volatile uint8_t debug_flush_timer = 0;
-
 namespace usb_debug
 {
 	// transmit a character.  0 returned on success, -1 on error
@@ -132,3 +134,4 @@ namespace usb_debug
 		}
 	}
 }
+#endif

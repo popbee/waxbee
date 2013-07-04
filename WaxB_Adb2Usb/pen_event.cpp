@@ -4,6 +4,7 @@
  *  Created on: 2010-12-26
  *      Author: Bernard
  */
+#include "featureinclusion.h"
 
 #include <stdint.h>
 
@@ -36,15 +37,22 @@ namespace Pen
 	{
 		switch(usbProtocol)
 		{
+#ifdef USB_PROTOCOL_IV_SUPPORT
 			case EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL4:
 				WacomUsb::send_protocol4_packet(penEvent);
 				break;
+#endif
+#ifdef TOUCH_SUPPORT
 			case EXTDATA_USB_PROTOCOL_WACOM_BAMBOO_TOUCH:
 				WacomUsb::send_bamboo_pen_packet(penEvent);
 				break;
+#endif
+#ifdef USB_PROTOCOL_V_SUPPORT
 			case EXTDATA_USB_PROTOCOL_WACOM_PROTOCOL5:
+			case EXTDATA_USB_PROTOCOL_WACOM_INTUOS5:
 				WacomUsb::send_protocol5_packet(penEvent);
 				break;
+#endif
 			default:
 				break;
 		}

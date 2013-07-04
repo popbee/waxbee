@@ -6,12 +6,14 @@
  *  Created on: 2010-11-11
  *      Author: Bernard
  */
+#include "featureinclusion.h"
 
 #include <avr/pgmspace.h>
 
 #include "extdata.h"
 #include "console.h"
 #include "usb_debug_channel.h"
+
 
 namespace console
 {
@@ -21,17 +23,21 @@ namespace console
 
 	void init()
 	{
+#ifdef DEBUG_SUPPORT
 		usb_output = (extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DEBUG);
 		serial_output = (extdata_getValue8(EXTDATA_SERIAL_PORT) == EXTDATA_SERIAL_PORT_DEBUG);
 
 		if(usb_output || serial_output)
 			console_enabled = true;
+#endif
 	}
 
 	static void do_print(char c)
 	{
+#ifdef DEBUG_SUPPORT
 		if(usb_output)
 			usb_debug::putchar(c);
+#endif
 	}
 
 	/** @param progmem_str address of string stored in 'program memory'. */
@@ -170,10 +176,12 @@ namespace console
 
 	void flush()
 	{
+#ifdef DEBUG_SUPPORT
 		if(!console_enabled)
 			return;
 
 		if(usb_output)
 			usb_debug::flush_output();
+#endif
 	}
 }

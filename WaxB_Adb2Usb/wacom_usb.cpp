@@ -2,6 +2,7 @@
  * Wacom-related stuff for the USB-side interface
  *
  */
+#include "featureinclusion.h"
 
 #include "usb_util.h"
 #include "extdata.h"
@@ -11,11 +12,21 @@
 #include "pen_data_transform.h"
 #include "strings.h"
 #include "debugproc.h"
+#include "led.h"
 
 #define WACOM_PEN_ENDPOINT	1
+#define WACOM_INTUOS5_PEN_ENDPOINT 3
 
 namespace WacomUsb
 {
+	static uint8_t	usbProtocol;
+
+	void init()
+	{
+		usbProtocol = extdata_getValue8(EXTDATA_USB_PROTOCOL);
+	}
+
+#ifdef USB_PROTOCOL_IV_SUPPORT
 	//-----------------------------------------------------------------
 	// USB Protocol IV (4)
 	//-----------------------------------------------------------------
@@ -88,8 +99,9 @@ namespace WacomUsb
 			protocol4_packet.eraser = 0;
 			protocol4_packet.button0 = 0;
 			protocol4_packet.button1 = 0;
-
+#ifdef DEBUG_SUPPORT
 			DebugProc::proxOutTrigger();
+#endif
 		}
 
 /*		if(console::console_enabled)
@@ -122,6 +134,8 @@ namespace WacomUsb
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
 			UsbUtil::send_packet_fill_idle_time(protocol4_packet.buffer, 8, WACOM_PEN_ENDPOINT, 50);
 	}
+#endif
+
 
 	//-----------------------------------------------------------------
 	// USB Bamboo Pen Packet
@@ -199,7 +213,9 @@ namespace WacomUsb
 			bamboo_pen_packet.button1 = 0;
 			bamboo_pen_packet.outofprox = 1;
 
+#ifdef DEBUG_SUPPORT
 			DebugProc::proxOutTrigger();
+#endif
 		}
 
 		if(console::console_enabled)
@@ -282,7 +298,7 @@ namespace WacomUsb
 	// Pen Data:	02 A0 91 06 66 9F 00 20 40 B8
 	//
 	// [0]	02  HID report identifier (02)
-	// [1]	A0  1 1 p 0  0 b c i   p = prox, b = button1, c = button0, i = index
+	// [1]	A0  1 1 p 0  0 b c i   p = prox, b = button1, c = button0, i = tool index
 	// [2]	91  x x x x  x x x x   x pos
 	// [3]	06  x x x x  x x x x
 	// [4]	66  y y y y  y y y y   y pos
@@ -306,7 +322,7 @@ namespace WacomUsb
 				uint8_t hid_identifier; // 0x02
 				struct
 				{
-					unsigned index:1;   // bit 0 - tool index -- set to 0
+					unsigned toolindex:1;// bit 0 - tool index -- set to 0 -- Intuos4/5: pressure low data extra bit
 					unsigned button0:1; // bit 1 - first button on the pen
 					unsigned button1:1; // bit 2 - second button on the pen
 					unsigned bit3:1;    // bit 3 - set to 0 (for pen)
@@ -323,9 +339,11 @@ namespace WacomUsb
 				uint8_t byte6;			// pressure high
 				uint8_t byte7;			// pressure + tiltx
 				uint8_t byte8;			// tiltx + tilty
-				unsigned zero:3;		// 0 (bits 0..2)
+				unsigned y_lowest:1;		// for Intuos3/4/5. (Intuos2 = 0)
+				unsigned x_lowest:1;		// for Intuos3/4/5. (Intuos2 = 0)
+				unsigned distance_lowest:1;	// for Intuos3/4/5. (Intuos2 = 0)
 				unsigned distance:5;		// distance from the sensor -
-								// seen numbers from 0x26 (far) to 0x0D (close) (bits 3..7)
+								// Intuos2: seen numbers from 0x26 (far) to 0x0D (close) (bits 3..7)
 			};
 		};
 	} protocol5_packet;
@@ -344,9 +362,10 @@ namespace WacomUsb
 		{
 			if(currentlyInRange)
 			{
-				if(penEvent.is_mouse == false) {
+				if(penEvent.is_mouse == false)
+				{
 					// normal pen packet
-					protocol5_packet.index = 0;
+					protocol5_packet.toolindex = 0;
 					protocol5_packet.button0 = penEvent.button0;
 					protocol5_packet.button1 = penEvent.button1;
 					protocol5_packet.bit3 = 0;
@@ -374,7 +393,8 @@ namespace WacomUsb
 					uint8_t tiltx = xformed.tilt_x + 0x40;
 					uint8_t tilty = xformed.tilt_y + 0x40;
 
-					if((penEvent.serial_packet_first_byte & 0xB8) != 0xA0) {
+					if((penEvent.serial_packet_first_byte & 0xB8) != 0xA0)
+					{
 						// TODO: Test this code with an actual airbrush.
 						// This is an airbrush "second packet".  The only difference between the first and second
 						// packets is that the absolute wheel position replaces the bits that contain the pressure
@@ -419,8 +439,18 @@ namespace WacomUsb
 						// So we can expect tilt to change based on the second packet, but not pressure (which
 						// is replaced by the wheel value) or button state.
 					}
-					protocol5_packet.byte6 = (xformed.pressure >> 2) & 0xFF;
-					protocol5_packet.byte7 = ((xformed.pressure & 0x3) << 6) | ((tiltx >> 1) & 0x3F);
+
+					uint16_t pressure = xformed.pressure;
+
+					if(usbProtocol == EXTDATA_USB_PROTOCOL_WACOM_INTUOS5)
+					{
+						// extra pressure range for INTUOS4/5
+						protocol5_packet.toolindex = pressure & 1;
+						pressure = pressure >> 1;
+					}
+
+					protocol5_packet.byte6 = (pressure >> 2) & 0xFF;
+					protocol5_packet.byte7 = ((pressure & 0x3) << 6) | ((tiltx >> 1) & 0x3F);
 					protocol5_packet.byte8 = ((tiltx << 7) & 0x80) | ( tilty & 0x7F);
 
 					protocol5_packet.distance = 0x0D; // The serial protocol doesn't include a distance value, but it does include the PROXIMITY_BIT
@@ -448,7 +478,8 @@ namespace WacomUsb
 					}
 	*/
 				}
-				else {
+				else
+				{
 					// data[1] must be set so the following if statement is true (from the Linux driver):
 					// if ((data[1] & 0xbc) == 0xa8 || (data[1] & 0xbe) == 0xb0 || (data[1] & 0xbc) == 0xac) {
 					// 0xbc: 1011 1100
@@ -486,7 +517,8 @@ namespace WacomUsb
 						*pbuf++ = 0; // data[7]
 						*pbuf++ = penEvent.buttons & 0x1f; // data[8] bits: 0:left btn, 1:mid btn, 2:right btn, 3:lower right button, 4:lower left button
 					}
-					else if (MOUSE_2D(penEvent)) {
+					else if (MOUSE_2D(penEvent))
+					{
 						// Construct 2D mouse packet
 						// TODO: Test this code with a 2D mouse
 						protocol5_packet.bit3 = 1;
@@ -510,11 +542,13 @@ namespace WacomUsb
 							      | (penEvent.relwheel > 0 ? 0x01 : 0x00)
 								  | (penEvent.relwheel < 0 ? 0x02 : 0x00);
 					}
-					else {
+					else
+					{
 						// Construct 4D mouse packet
 						protocol5_packet.bit3 = 1;
 
-						if((penEvent.serial_packet_first_byte & 0xbe) == 0xaa) {
+						if((penEvent.serial_packet_first_byte & 0xbe) == 0xaa)
+						{
 							// This is a 4D mouse "second packet" containing rotational information.
 							protocol5_packet.button0 = 1; // Set bit 1 to indicate this is the "second packet".
 
@@ -528,12 +562,14 @@ namespace WacomUsb
 							// essentially representing 0 (straight up) to 180 degrees with 0 to 900 rotating clockwise,
 							// then it jumps to around -900 and returns to 0 as you continue to rotate clockwise.
 							rotation = penEvent.rotation_z;
-							if(rotation < 900) {
+							if(rotation < 900)
+							{
 								// Rotation must be shifted left by 1 bit to make room to use bit 0 to represent
 								// positive or negative.  Why the heck they made the formatting so confusing is beyond me.
 								rotation = (rotation << 1) | 0x1; // Bit 0 is set when rotation is negative.
 							}
-							else {
+							else
+							{
 								rotation = 1799 - rotation;
 								rotation = rotation << 1;
 							}
@@ -542,7 +578,8 @@ namespace WacomUsb
 							*pbuf++ = 0; // data[8]
 							//*pbuf++ = (penEvent.buttons & 0x07) | ((penEvent.buttons & 0x18) << 1); // data[8] bits: 0:left btn, 1:mid btn, 2:right btn, 3:throttle wheel has negative value when set, 4:lower right button, 5:lower left button
 						}
-						else {
+						else
+						{
 							// The serial data contains throttle values ranging from -1023 to 1023 using 10 bits for the value plus
 							// 1 bit for the +/-.  The USB data only supports an 8-bit value plus 1 bit for +/-, so we must scale
 							// throttle to range from -255 to +255 using 8 bits for the number and 1 bit for the +/-
@@ -611,10 +648,23 @@ namespace WacomUsb
 				//
 				// Example Intuos2 pen and eraser proximity packets:
 				//   02 C2 85 20 16 00 2C D0 00 00   In Range: NORMAL PEN
-				//	 02 C2 85 A0 16 00 2C D0 00 00   In Range: ERASER (PEN)
-				// Tool id is 85<<4 | 20>>4 | d0&0f<<20 | 00&f0<<12 = 850 | 2 | 0 | 0 = 852
-				// Serial number is 20&0f<<28 + 16<<20 + 00<<12 + 2c<<4 + d0>>4 = 0+1600000000+0+2c0+d = 16000002CD
+				//   02 C2 85 A0 16 00 2C D0 00 00   In Range: ERASER (PEN)
+				// Tool id is 85<<4 | 20>>4 | D0&0f<<20 | 00&f0<<12 = 850 | 2 | 0 | 0 = 0x000852
+				// Serial number is 20&0f<<28 + 16<<20 + 00<<12 + 2c<<4 + d0>>4 = 0+1600000+0+2c0+d = 0x016002CD
+				//
+				//   02 C2 85 A0 16 00 2C D0 00 00   In Range: ERASER (PEN)
+				// Tool id is 85<<4 | 20>>4 | D0&0f<<20 | 00&f0<<12 = 850 | 2 | 0 | 0 = 0x00085A
+				// Serial number (is the same) = 0x016002CD
+				//
+				// Intuos5 touch S pen proximity packet:
+				//   02 C2 80 22 28 08 26 91 00 00   In Range: Intuos5(?) Pen
+				//   02 C2 80 A2 28 08 26 91 00 00  eraser
+				// Tool id is 80<<4 | 22>>4 | 91&0f<<20 | 00&f0<<12 = 800 | 2 | 100000 | 0 = 0x100802 pen
+				// Tool id is 80<<4 | A2>>4 | 91&0f<<20 | 00&f0<<12 = 800 | A | 100000 | 0 = 0x10080A eraser
+				// Serial number is = 0x22808269
+				//
 
+				//
 				/*
 				*pbuf++ = 0xC2; // [1]
 				*pbuf++ = 0x85; // [2]
@@ -665,10 +715,23 @@ namespace WacomUsb
 
 				if(penEvent.tool_id == 0)
 				{
-					if(penEvent.eraser)
-						tool_id = 0x85A; // Eraser tool id
+					if(usbProtocol == EXTDATA_USB_PROTOCOL_WACOM_INTUOS5)
+					{
+						if(penEvent.eraser)
+						{
+							LED_TOGGLE;
+							tool_id = 0x10080A; // Eraser tool id (intuos 5)
+						}
+						else
+							tool_id = 0x100802; // Pen tool id  (intuos 5)
+					}
 					else
-						tool_id = 0x852; // Pen tool id
+					{
+						if(penEvent.eraser)
+							tool_id = 0x85A; // Eraser tool id  (intuos 2)
+						else
+							tool_id = 0x852; // Pen tool id  (intuos 2)
+					}
 				}
 				else
 				{
@@ -678,7 +741,12 @@ namespace WacomUsb
 				uint32_t tool_serial_num;
 
 				if(penEvent.tool_serial_num == 0)
-					tool_serial_num = 0x16002CDU; // Common Intuos 2 pen serial number (same for both the pen and eraser side)
+				{
+					if(usbProtocol == EXTDATA_USB_PROTOCOL_WACOM_INTUOS5)
+						tool_serial_num = 0x22808269U; // Intuos 5 pen serial number (same for both the pen and eraser side)
+					else
+						tool_serial_num = 0x016002CDU; // Intuos 2 pen serial number (same for both the pen and eraser side)
+				}
 				else
 					tool_serial_num = penEvent.tool_serial_num;
 				
@@ -723,8 +791,9 @@ namespace WacomUsb
 			{
 				console::printlnP(STR_USB_PACKET_OUT_OF_RANGE_PACKET_ALL_ZEROS);
 			}
-
+#ifdef DEBUG_SUPPORT
 			DebugProc::proxOutTrigger();
+#endif
 		}
 		else
 		{
@@ -741,7 +810,16 @@ namespace WacomUsb
 			console::println();
 		#endif
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
-			UsbUtil::send_packet_fill_idle_time(protocol5_packet.buffer, 10, WACOM_PEN_ENDPOINT, 50);
+		{
+			uint8_t endPoint;
+
+			if(usbProtocol == EXTDATA_USB_PROTOCOL_WACOM_INTUOS5)
+				endPoint = WACOM_INTUOS5_PEN_ENDPOINT;  // Pen data on Endpoint 3 (0x83) with Intuos5
+			else
+				endPoint = WACOM_PEN_ENDPOINT; // Pen data on Endpoint 1 (0x81) with Intuos2
+
+			UsbUtil::send_packet_fill_idle_time(protocol5_packet.buffer, 10, endPoint, 50);
+		}
 	}
 
 	bool in_special_operation = false;

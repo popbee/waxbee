@@ -1,3 +1,7 @@
+#include "featureinclusion.h"
+#ifdef DEBUG_SUPPORT
+
+
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 
@@ -253,3 +257,4 @@ namespace DebugProc
 
 
 
+#endif

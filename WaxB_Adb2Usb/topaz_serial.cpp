@@ -6,6 +6,7 @@
  *  Created on: 2011-07-25
  *      Author: Bernard
  */
+#include "featureinclusion.h"
 
 #include "extdata.h"
 #include "avr_util.h"
@@ -20,6 +21,7 @@
 
 #define TOPAZ_PACKET	5
 
+#ifdef SERIAL_TOPAZ_SUPPORT
 namespace topaz_serial
 {
 	enum topazControllerState
@@ -118,3 +120,4 @@ namespace topaz_serial
 		itsCurState = packet;
 	}
 }
+#endif

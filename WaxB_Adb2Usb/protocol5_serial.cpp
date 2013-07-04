@@ -6,6 +6,8 @@
  *  Created on: 2011-06-05
  *      Author: Bernard
  */
+#include "featureinclusion.h"
+#ifdef SERIAL_PROTOCOL_V_SUPPORT
 
 #include "extdata.h"
 #include "avr_util.h"
@@ -516,3 +518,4 @@ namespace protocol5_serial
 		initialState();
 	}
 }
+#endif
