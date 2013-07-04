@@ -154,6 +154,11 @@
 				{
 					value:6,
 					name:'Wacom Bamboo Touch'
+				},
+				WACOM_INTUOS5:
+				{
+					value:7,
+					name:'Wacom Intuos 5'
 				}
 			}
 		},
