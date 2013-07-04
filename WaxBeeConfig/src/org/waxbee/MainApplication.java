@@ -61,7 +61,7 @@ import org.waxbee.teensy.extdata.WaxbeeConfig;
 @SuppressWarnings("serial")
 public class MainApplication extends JFrame
 {
-	private static final String VERSION = "0.12a"; // Keep version in sync inside strings.h !!
+	private static final String VERSION = "0.14"; // Keep version in sync inside strings.h !!
 
 	private static final String TEMPLATE_EXTENSION_PATTERN = "*.tmpl.txt";
 
@@ -269,8 +269,8 @@ public class MainApplication extends JFrame
 				}
 			}
 		});
-
-/*		menu.add(mi = new JMenuItem("Test Swing Painting..."));
+/*
+		menu.add(mi = new JMenuItem("Test Swing Painting..."));
 		mi.addActionListener(new ActionListener()
 		{
 			@Override
