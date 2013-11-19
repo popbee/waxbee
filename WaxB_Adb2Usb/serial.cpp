@@ -8,6 +8,7 @@
  */
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 
 #include "avr_util.h"
 #include "serial.h"
@@ -22,6 +23,9 @@ namespace serial
 
 		// disable transmitter
 		cbi(UCSR1B,TXEN1);
+
+		// disable receive interrupts
+		cbi(UCSR1B,RXCIE1);
 
 		// disable receiver
 		cbi(UCSR1B,RXEN1);
@@ -62,6 +66,9 @@ namespace serial
 		sbi(UCSR1B,TXEN1);
 		// enable receiver
 		sbi(UCSR1B,RXEN1);
+		// enable receive interrupts
+		sbi(UCSR1B,RXCIE1);
+
 	}
 
 	void setupPort()
@@ -150,19 +157,14 @@ namespace serial
 		}
 	}
 
-	/** must be called from the main loop, will return quickly if nothing to do */
-	void serialPortProcessing()
-	{
-		// empty the data in the FIFO
-		while(UCSR1A & (1<<RXC1))
-		{
-			// pop byte from FIFO
-			uint8_t data = UDR1;
+	//-------------------------------------------------------------------------------
+	// Low level interrupt driven buffer.  Buffer code courtesy of NewSoftSerial :)
 
-			// process the received byte
-			itsByteReceivedCallback(data);
-		}
-	}
+#define _SS_MAX_RX_BUFF 16 // RX buffer size
+
+	uint8_t _receive_buffer[_SS_MAX_RX_BUFF];
+	volatile uint8_t _receive_buffer_tail = 0;
+	volatile uint8_t _receive_buffer_head = 0;
 
 	void flush()
 	{
@@ -170,5 +172,76 @@ namespace serial
 		unsigned char dummy;
 		while ( UCSR1A & (1<<RXC1) )
 			dummy = UDR1;
+
+		// delete FIFO content (if any)
+		_receive_buffer_head = _receive_buffer_tail;
 	}
+
+	/** Read data from buffer */
+	int read()
+	{
+		// Empty buffer?
+		if (_receive_buffer_head == _receive_buffer_tail)
+			return -1;
+
+		// Read from "head"
+		uint8_t d = _receive_buffer[_receive_buffer_head]; // grab next byte
+		_receive_buffer_head = (_receive_buffer_head + 1) % _SS_MAX_RX_BUFF;
+
+		return d;
+	}
+
+	int available()
+	{
+		return (_receive_buffer_tail + _SS_MAX_RX_BUFF - _receive_buffer_head) % _SS_MAX_RX_BUFF;
+	}
+
+	void handle_interrupt()
+	{
+		// Empty the data in the FIFO
+		while(UCSR1A & (1<<RXC1))
+		{
+			// data overrun test (must be done before reading UDR1)
+			// if(UCSR1A & (1<<DOR1))
+
+			// pop byte from FIFO
+			uint8_t data = UDR1;
+
+			// if buffer full, set the overflow flag and return
+			if ((_receive_buffer_tail + 1) % _SS_MAX_RX_BUFF != _receive_buffer_head)
+			{
+				// save new data in buffer: tail points to where byte goes
+				_receive_buffer[_receive_buffer_tail] = data; // save new byte
+				_receive_buffer_tail = (_receive_buffer_tail + 1) % _SS_MAX_RX_BUFF;
+			}
+			else
+			{
+				// dropping bytes here
+//				_buffer_overflow = true;
+			}
+		}
+	}
+
+	//----------------------------------------------------------------------------------------------
+
+	/** must be called from the main loop, will return quickly if nothing to do */
+	void serialPortProcessing()
+	{
+		// empty the data in the FIFO
+		for(;;)
+		{
+			int data = read();
+
+			if(data == -1)
+				return;
+
+			// process the received byte
+			itsByteReceivedCallback(data);
+		}
+	}
+}
+
+ISR(USART1_RX_vect)
+{
+	serial::handle_interrupt();
 }

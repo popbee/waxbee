@@ -455,7 +455,7 @@ namespace WacomUsb
 
 					protocol5_packet.distance = 0x0D; // The serial protocol doesn't include a distance value, but it does include the PROXIMITY_BIT
 
-	/*				if(console::console_enabled)
+/*					if(console::console_enabled)
 					{
 						console::print("[USB Packet - prox:");
 						console::printbit(protocol5_packet.proximity);
@@ -476,8 +476,7 @@ namespace WacomUsb
 						console::printHex(protocol5_packet.byte8,2);
 						console::println("]");
 					}
-	*/
-				}
+*/				}
 				else
 				{
 					// data[1] must be set so the following if statement is true (from the Linux driver):
@@ -761,13 +760,13 @@ namespace WacomUsb
 				// I don't think data[9] means anything, but the captured data contained 0, so set to 0.
 				*pbuf = 0; // data[9]
 
-				if(console::console_enabled)
+/*				if(console::console_enabled)
 				{
 					console::printP(STR_USB_PACKET_IN_RANGE_PACKET_ERASER);
 					console::printbit(penEvent.eraser);
 					console::println("]");
 				}
-			}
+*/			}
 
 			shouldfill = true;
 		}
@@ -787,10 +786,11 @@ namespace WacomUsb
 			*pbuf++ = 0x00; // [8]
 			*pbuf   = 0x00; // [9]
 
-			if(console::console_enabled)
+/*			if(console::console_enabled)
 			{
 				console::printlnP(STR_USB_PACKET_OUT_OF_RANGE_PACKET_ALL_ZEROS);
 			}
+*/
 #ifdef DEBUG_SUPPORT
 			DebugProc::proxOutTrigger();
 #endif
@@ -802,13 +802,13 @@ namespace WacomUsb
 		}
 
 		#ifdef DEBUG_USB_DATA
-			console::print("SU: "); // Sending USB data.  Keep these debug statements short or it seems to overflow the USB buffer
+/*			console::print("SU: "); // Sending USB data.  Keep these debug statements short or it seems to overflow the USB buffer
 			for(int i = 0; i < 10; i++) {
 				console::printHex(protocol5_packet.buffer[i], 2);
 				console::print(" ");
 			}
 			console::println();
-		#endif
+*/		#endif
 		if(extdata_getValue8(EXTDATA_USB_PORT) == EXTDATA_USB_PORT_DIGITIZER)
 		{
 			uint8_t endPoint;

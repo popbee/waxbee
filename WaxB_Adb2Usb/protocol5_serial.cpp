@@ -199,12 +199,25 @@ namespace protocol5_serial
 
 						uint8_t baud = extdata_getValue8(EXTDATA_SERIAL_PORT_SPEED);
 
+						console::print("\nChanging to ");
+
 						if(baud == EXTDATA_SERIAL_PORT_SPEED_BAUD_38400)
+						{
 							serial::sendString("BA38\r");
+							console::print("38400");
+						}
 						else if(baud == EXTDATA_SERIAL_PORT_SPEED_BAUD_19200)
+						{
 							serial::sendString("BA19\r");
+							console::print("19200");
+						}
 						else if(baud == EXTDATA_SERIAL_PORT_SPEED_BAUD_9600)
+						{
 							serial::sendString("BA96\r");
+							console::print("9600");
+						}
+
+						console::println(" bauds");
 
 						_delay_ms(20);
 
@@ -253,7 +266,7 @@ namespace protocol5_serial
 				else if(datalen == 0)
 				{
 					console::printHex(data, 2);
-					console::println("(*!)"); // FIRST BYTE IN DATA PACKET DID NOT CONTAIN HEADER_BIT
+					console::print("(*!) "); // FIRST BYTE IN DATA PACKET DID NOT CONTAIN HEADER_BIT
 					return;		// wait for the first valid byte
 				}
 
@@ -276,7 +289,7 @@ namespace protocol5_serial
 					datalen = 0;
 
 					#ifdef DEBUG_SERIAL_DATA
-						console::println();
+						console::print(' ');
 					#endif
 
 					if ((buffer[0] & 0xFC) == 0xC0)
@@ -374,6 +387,8 @@ namespace protocol5_serial
 					}
 					else if ((buffer[0] & 0xFE) == 0x80)
 					{
+						console::print("Out of Prox");
+
 						// out of proximity
 						resetToolState();
 
@@ -433,6 +448,13 @@ namespace protocol5_serial
 	
 							penEvent.proximity = ((uint16_t)buffer[0] & PROXIMITY_BIT);
 							penEvent.touch = (buffer[3] & 0x08) ? 1:0; // shouldn't we look at the pressure instead?
+
+							console::print("PEN x:");
+							console::printNumber(penEvent.x);
+							console::print(" y:");
+							console::printNumber(penEvent.y);
+							console::print(" p:");
+							console::printNumber(penEvent.pressure);
 
 							//if(penEvent.proximity) {
 								Pen::input_pen_event(penEvent);

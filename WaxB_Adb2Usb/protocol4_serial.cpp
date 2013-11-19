@@ -307,8 +307,8 @@ namespace protocol4_serial
 			{
 				if(data & 0x80)
 				{
-//					console::println();
-//					console::print("*");
+					console::println();
+					console::print("*");
 
 					if(datalen > 0)
 						console::print("(?!)");
@@ -317,10 +317,12 @@ namespace protocol4_serial
 				else if(datalen == 0)
 				{
 					console::println("(*!)");
+					console::printHex(data, 2);
 					return;		// wait for the first valid byte
 				}
 
-//				console::printHex(data, 2);
+				console::printHex(data, 2);
+				console::print(' ');
 
 				if(datalen < packet_len)
 				{
@@ -345,11 +347,10 @@ namespace protocol4_serial
 							(((uint16_t) buffer[4]        ) << 7) |
 							(((uint16_t)(buffer[3] & 0x3) ) << 14);
 
-//					console::print("...x=");
-//					console::printNumber(penEvent.x);
-//					console::print("y=");
-//					console::printNumber(penEvent.y);
-
+					console::print("...x=");
+					console::printNumber(penEvent.x);
+					console::print(" y=");
+					console::printNumber(penEvent.y);
 
 					/* pressure */
 
@@ -357,6 +358,9 @@ namespace protocol4_serial
 								(((uint16_t)(buffer[6] & 0x3F)) << 1);
 
 					penEvent.pressure |= (buffer[6] & 0x40) ? 0 : 0x80;
+
+					console::print(" p=");
+					console::printNumber(penEvent.pressure);
 
 					penEvent.is_mouse = buffer[0] & 0x20 ? 0 : 1;  // == !stylus
 
@@ -434,7 +438,7 @@ namespace protocol4_serial
 
 					penEvent.rotation_z = 0;
 
-//					console::println();
+					console::println();
 
 					Pen::input_pen_event(penEvent);
 				}

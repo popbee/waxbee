@@ -163,9 +163,17 @@ namespace isdv4_serial
 							(((uint16_t) buffer[4]        ) << 2) |
 							(((uint16_t) buffer[3]        ) << 9);
 
+					console::print("\nPEN x:");
+					console::printNumber(penEvent.x);
+					console::print(" y:");
+					console::printNumber(penEvent.y);
+
 					/* pressure */
 					penEvent.pressure = (((uint16_t)(buffer[6] & 0x07)) << 7) |
 									 buffer[5];
+
+					console::print(" p:");
+					console::printNumber(penEvent.pressure);
 
 					// not sure if this bit is looked at anyways
 					penEvent.touch = penEvent.pressure > 10;
@@ -249,6 +257,7 @@ namespace isdv4_serial
 
 		if(console::console_enabled)
 		{
+			_delay_ms(250);
 			serial::sendString("\r\r0\r"); // send a few \r to make sure we are in sync
 			_delay_ms(250);
 			serial::flush();
