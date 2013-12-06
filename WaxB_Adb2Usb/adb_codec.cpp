@@ -783,9 +783,11 @@ namespace ADB
 				if(pulseTime < STOP2START_TIME_MIN_US)
 				{
 					errorAndResetDecoder(13); // invalid stop2start (too small)
+#ifdef DEBUG_SUPPORT
 					console::printP(STR_STOP2START_TIME_TOO_SMALL);
 					console::printNumber(pulseTime);
 					console::println(" us");
+#endif
 					break;
 				}
 

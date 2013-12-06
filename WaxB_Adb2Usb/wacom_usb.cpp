@@ -718,7 +718,6 @@ namespace WacomUsb
 					{
 						if(penEvent.eraser)
 						{
-							LED_TOGGLE;
 							tool_id = 0x10080A; // Eraser tool id (intuos 5)
 						}
 						else

@@ -54,8 +54,10 @@ namespace ADB
 		adbTransactionPending = true;
 	}
 
+#ifdef DEBUG_SUPPORT
 	void dump_adb_packet(bool newline)
 	{
+
 		console::print("[");
 		console::printHex(adbPacket.address, 1);
 		if(adbPacket.command == ADB_COMMAND_TALK)
@@ -174,6 +176,7 @@ namespace ADB
 		console::printNumber(adbPacket.r0.tilty);
 		console::println();
 	}
+#endif
 
 	enum adbControllerState
 	{
@@ -247,16 +250,20 @@ namespace ADB
 					}
 				}
 
+#ifdef DEBUG_SUPPORT
 				console::printP(STR_ENTERING_PROXIMITY_MODE);
 				if(eraser_mode)
 					console::printlnP(STR_ERASER);
 				else
 					console::printlnP(STR_PEN);
+#endif
 			}
 		}
 		else if(!adbPacket.r0.proximity)
 		{
+#ifdef DEBUG_SUPPORT
 			console::printlnP(STR_EXITING_PROXIMITY);
+#endif
 			resetToolState();
 		}
 	}
@@ -272,12 +279,15 @@ namespace ADB
 		{
 			adbTransactionJustFinished = false;
 
+#ifdef DEBUG_SUPPORT
+
 			if(!adbLastErrorStatus == 0)
 			{
 				console::printP(STR_ERROR_CODE);
 				console::printNumber(adbLastErrorStatus);
 				console::println();
 			}
+#endif
 		}
 
 		switch(itsCurAdbState)
@@ -286,7 +296,6 @@ namespace ADB
 				console::printlnP(STR_POWERON);
 				resetToolState();
 			case identify:
-				debug_pulse();
 				console::printlnP(STR_IDENTIFY);
 				// [4T1:384850003C000617]
 				adbPacket.address = 4;
@@ -301,28 +310,33 @@ namespace ADB
 
 			case identify_response:
 			{
+#ifdef DEBUG_SUPPORT
 				console::printlnP(STR_IDENTIFY_RESPONSE);
 				dump_adb_packet(true);
-
+#endif
 				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
 				{
 					itsCurAdbState = identify;
 					return false; // re-enter immediately the controller
 				}
 
+#ifdef DEBUG_SUPPORT
 				uint16_t max_x = (adbPacket.r1.max_x_msb << 8) | (adbPacket.r1.max_x_lsb);
 				uint16_t max_y = (adbPacket.r1.max_y_msb << 8) | (adbPacket.r1.max_y_lsb);
+
 
 				console::printP(STR_ADB_TABLET_INFO_MAX_X);
 				console::printNumber(max_x);
 				console::printP(STR_MAX_Y);
 				console::printNumber(max_y);
 				console::println();
+#endif
 			}
 			case _4L3:
+#ifdef DEBUG_SUPPORT
 				console::printlnP(STR_4L3);
 				// [4L3:6F68]
-
+#endif
 				adbPacket.address = 4;
 				adbPacket.command = ADB_COMMAND_LISTEN;
 				adbPacket.parameter = 3;
@@ -336,8 +350,10 @@ namespace ADB
 				break;
 
 			case _4L3_response:
+#ifdef DEBUG_SUPPORT
 				console::printlnP(STR_4L3_RESPONSE);
 				dump_adb_packet(true);
+#endif
 				if(adbLastErrorStatus != 0)
 				{
 					itsCurAdbState = _4L3;
@@ -345,7 +361,9 @@ namespace ADB
 				}
 
 			case _4T3:
+#ifdef DEBUG_SUPPORT
 				console::printlnP(STR_4T3);
+#endif
 				// [4T3:6968]
 
 				adbPacket.address = 4;
@@ -359,8 +377,10 @@ namespace ADB
 				break;
 
 			case _4T3_response:
+#ifdef DEBUG_SUPPORT
 				console::printlnP(STR_4T3_RESPONSE);
 				dump_adb_packet(true);
+#endif
 				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
 				{
 					itsCurAdbState = _4T3;
@@ -368,7 +388,9 @@ namespace ADB
 				}
 
 			case _4L1:
+#ifdef DEBUG_SUPPORT
 				console::printlnP(STR_4L1);
+#endif
 				// [4L1:6768]
 
 				adbPacket.address = 4;
@@ -384,8 +406,10 @@ namespace ADB
 				break;
 
 			case _4L1_response:
+#ifdef DEBUG_SUPPORT
 				console::printlnP(STR_4L1_RESPONSE);
 				dump_adb_packet(true);
+#endif
 				if(adbLastErrorStatus != 0)
 				{
 					itsCurAdbState = _4L1;
@@ -393,7 +417,9 @@ namespace ADB
 				}
 
 			case _4T1_check:
+#ifdef DEBUG_SUPPORT
 				console::printlnP(STR_4T1_CHECK);
+#endif
 				// [4T1:386B50003C000617]
 
 				adbPacket.address = 4;
@@ -407,8 +433,10 @@ namespace ADB
 				break;
 
 			case _4T1_check_response:
+#ifdef DEBUG_SUPPORT
 				console::printlnP(STR_4T1_CHECK_RESPONSE);
 				dump_adb_packet(true);
+#endif
 				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
 				{
 					itsCurAdbState = _4T1_check;
@@ -484,7 +512,14 @@ namespace ADB
 					return false; // re-enter immediately the controller
 				}
 #ifdef GD_TRYOUTS
+#ifdef DEBUG_SUPPORT
+				if(adbPacket.datalen > 0)
+				{
+//					debug_pulse();
+				}
+
 				dump_adb_packet(true);
+#endif
 #endif
 				if(adbPacket.datalen == 0)
 				{
@@ -492,8 +527,10 @@ namespace ADB
 					return false; // re-enter immediately the controller
 				}
 #ifndef GD_TRYOUTS
+#ifdef DEBUG_SUPPORT
 				dump_adb_packet(false);
 				dump_adb_event();
+#endif
 #endif
 				detectToolState();
 

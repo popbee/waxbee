@@ -13,6 +13,7 @@
 #include "console.h"
 #include "strings.h"
 #include <string.h>
+#include "led.h"
 
 /** Special USB port logic
  *
@@ -35,6 +36,11 @@ namespace UsbUtil
 		{
 			dummy_intuos5_touch_filler_countdown_5ms = 250;
 			dummy_report192_intuos5_countdown_5ms = 1000;
+		}
+		else
+		{
+			dummy_intuos5_touch_filler_countdown_5ms = 0;
+			dummy_report192_intuos5_countdown_5ms = 0;
 		}
 
 		filler_countdown_5ms = 0;
@@ -116,7 +122,7 @@ namespace UsbUtil
 			usb_send_packet(repeat_buffer, repeat_size, repeat_endpoint, repeat_timeout);
 		}
 
-		if(dummy_report192_intuos5_countdown_5ms < 5)
+		if(dummy_report192_intuos5_countdown_5ms > 0 && dummy_report192_intuos5_countdown_5ms < 5)
 		{
 			dummy_report192_intuos5_countdown_5ms = 0;
 
@@ -125,7 +131,7 @@ namespace UsbUtil
 			dummy_report192_intuos5_countdown_5ms = 1000;
 		}
 
-		if(dummy_intuos5_touch_filler_countdown_5ms < 5)
+		if(dummy_intuos5_touch_filler_countdown_5ms > 0 && dummy_intuos5_touch_filler_countdown_5ms < 5)
 		{
 			dummy_intuos5_touch_filler_countdown_5ms = 0;
 

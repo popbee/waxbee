@@ -13,6 +13,7 @@
 #include "avr_util.h"
 #include "serial.h"
 #include "extdata.h"
+#include "led.h"
 
 namespace serial
 {
@@ -160,11 +161,11 @@ namespace serial
 	//-------------------------------------------------------------------------------
 	// Low level interrupt driven buffer.  Buffer code courtesy of NewSoftSerial :)
 
-#define _SS_MAX_RX_BUFF 16 // RX buffer size
+#define _SS_MAX_RX_BUFF 800 // RX buffer size
 
 	uint8_t _receive_buffer[_SS_MAX_RX_BUFF];
-	volatile uint8_t _receive_buffer_tail = 0;
-	volatile uint8_t _receive_buffer_head = 0;
+	volatile uint16_t _receive_buffer_tail = 0;
+	volatile uint16_t _receive_buffer_head = 0;
 
 	void flush()
 	{
@@ -186,15 +187,19 @@ namespace serial
 
 		// Read from "head"
 		uint8_t d = _receive_buffer[_receive_buffer_head]; // grab next byte
-		_receive_buffer_head = (_receive_buffer_head + 1) % _SS_MAX_RX_BUFF;
+
+		_receive_buffer_head++;
+
+		if(_receive_buffer_head >= _SS_MAX_RX_BUFF)
+			_receive_buffer_head = 0;
 
 		return d;
 	}
 
-	int available()
-	{
-		return (_receive_buffer_tail + _SS_MAX_RX_BUFF - _receive_buffer_head) % _SS_MAX_RX_BUFF;
-	}
+//	int available()
+//	{
+//		return (_receive_buffer_tail + _SS_MAX_RX_BUFF - _receive_buffer_head) % _SS_MAX_RX_BUFF;
+//	}
 
 	void handle_interrupt()
 	{
@@ -212,11 +217,14 @@ namespace serial
 			{
 				// save new data in buffer: tail points to where byte goes
 				_receive_buffer[_receive_buffer_tail] = data; // save new byte
-				_receive_buffer_tail = (_receive_buffer_tail + 1) % _SS_MAX_RX_BUFF;
+				_receive_buffer_tail++;
+				if( _receive_buffer_tail >= _SS_MAX_RX_BUFF)
+					_receive_buffer_tail = 0;
 			}
 			else
 			{
 				// dropping bytes here
+				LED_TOGGLE;
 //				_buffer_overflow = true;
 			}
 		}
