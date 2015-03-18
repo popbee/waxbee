@@ -36,7 +36,7 @@ Projects
 | *Intuos5* | Basic pen functionality. (Limited templates “UD-1212-R to Intuos5 S” only for now. See Intuos5 talk below. |
 | *Bamboo Touch* | Early coding stage. Development not far (superseeded by Intuos5 work) |
 
-Latest Template list: (bundled in the distribution zip) <http://code.google.com/p/waxbee/source/browse/#svn%2FWaxBeeConfig%2Fconfig_templates>
+Latest Template list: (bundled in the distribution zip) <https://github.com/popbee/waxbee/tree/master/WaxBeeConfig/config_templates>
 
 ### Waxbee Config tool status
 
