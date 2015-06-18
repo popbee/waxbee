@@ -21,16 +21,16 @@ extern "C"
 {
 #endif
 
-extern uint8_t PROGMEM usbdescriptor_string0[4];
+const extern uint8_t PROGMEM usbdescriptor_string0[4];
 
 // This header file will morph into its associated ".c" file if "STRINGS_C_" is #defined.
 // In other words, it will "create" the strings only in strings.c
 // strings.c is the only place that STRINGS_C_ is defined.
 
 #ifdef STRINGS_C_
-#define PSTRING(symbol, text) prog_char symbol[] = (text)
+#define PSTRING(symbol, text) const prog_char symbol[] = (text)
 #else
-#define PSTRING(symbol, text) extern prog_char symbol[]
+#define PSTRING(symbol, text) const extern prog_char symbol[]
 #endif
 
 //----------------------------------------------------------------

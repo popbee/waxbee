@@ -23,7 +23,7 @@ namespace GpioInit
 		return number;
 	}
 	
-	static void reportGpioErrorP(prog_char* progmem_str)
+	static void reportGpioErrorP(const prog_char* progmem_str)
 	{
 		console::printP(STR_GPIO_INIT);
 		console::printP(progmem_str);

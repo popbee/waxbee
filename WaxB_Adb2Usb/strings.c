@@ -13,5 +13,5 @@
 #include "strings.h"
 
 // the string 0 is not a string but a 16 bit list of supported locale codes
-uint8_t PROGMEM usbdescriptor_string0[4] = { 4, 3, 0x04,0x09 };
+const uint8_t PROGMEM usbdescriptor_string0[4] = { 4, 3, 0x04,0x09 };
 
