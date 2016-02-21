@@ -16,12 +16,12 @@ Projects
 
 ### Native Tablet Support Status
 
-|   |   |   |
-|---|---|---|
+| Tablet      | Tablet_Model | Status    |
+|-------------|--------------|-----------|
 | *ADB Ultrapad/Digitizer/DigitizerII/ArtZII* | UD-xxxx-A | basic pen functionality|
-| *ADB Intuos* | GD-xxxx-A | Non functional. See ADB Intuos section below. | 
+| *ADB Intuos* | GD-xxxx-A | Non functional yet. See ADB Intuos section below. | 
 | *Serial Penenabled* (TabletPC) | (various) | (ISDV4) Basic Pen functionality works |
-| *Serial Penenabled TabletPC Touch* | (various) | (ISDV4) early coding stage |
+| *Serial Penenabled TabletPC Touch* | (various) | (ISDV4) not working/touch not supported |
 | *Serial Ultrapad/Digitizer II/ArtZII* | UD-xxxx-R | (Protocol IV) is working (basic pen functionality). |
 | *Serial ArtPad II* | KT-xxxx-R | (Protocol IV) basic pen functionality |
 | *Serial Intuos* | GD-xxxx-R | (Protocol V) all tools supported, menu strip works when emulating USB Intuos 2|
@@ -70,14 +70,14 @@ If you want to get your hands deep into the code, well, Chris Dragon attempted t
 ### ADB Intuos
 For the ADB Intuos (Model numbers GD-xxxx-A). We do not know how to interpret the ADB data. We think we correctly read the "bits", but interpreting them is far from conclusive. The weird thing is that there isn't that many bits to look at!
 We talked to an internal Wacom person (that someone had a contact to). But Wacom stubbornly refuses to disclose the information for this old/unsupported technology. 
-**EDIT: we actually cracked it. Thanks to Simon Stapleton - Great Wizard of the Classic Mac and ADB! https://github.com/tufty/adb-intuos Story: http://forum.bongofish.co.uk/index.php?topic=2387.msg19968#msg19968
+**EDIT: we eventually cracked it. Thanks to Simon Stapleton - Great Wizard of the Classic Mac and ADB! https://github.com/tufty/adb-intuos Story: http://forum.bongofish.co.uk/index.php?topic=2387.msg19968#msg19968
 
 ### Intuos 5
 New emulation support for Intuos5. This will help enabling three things:
   1. Support for more recent OSes. There are official Wacom Intuos5 drivers for Windows 8/10 and MacOSX Lion up to El Capitan.
-  2. Custom Buttons: Since Intuos5 have pads and lots of buttons it will be easy to eventually use that to map custom keys or devices. 
+  2. Custom Buttons: Since Intuos5 have pads and lots of buttons it might be easy to eventually use that to map custom keys or devices. (Contact me if in need of this).
   3. Custom Touch: Intuos5 also have touch, so it would be feasible to convert a custom touch device into simulated Intuos5 touch packets. (feasible but probably hard)
+
 
   [Teensy]: http://www.pjrc.com/teensy
   [`Dracoventions.com`]: http://www.dracoventions.com
-  [forum.bongofish.com]: http://forum.bongofish.com
