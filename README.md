@@ -57,7 +57,7 @@ Some rough instructions to interface ADB Wacom tablets here: [InterfacingADB]
 ### USB Serial
 This implements a virtual Serial port on the Teensy 2.0 specifically targeted to talk to tablets for testing purposes (original code courtesy of prjc.com - forked from V1.7). Please check out http://www.pjrc.com/teensy/usb_serial.html 
 
-![](http://waxbee.googlecode.com/svn/wiki/udhack.jpg)
+![](https://raw.githubusercontent.com/popbee/waxbee/master/wiki/udhack.jpg)
 
 
 ### Wacom hid dump tool
