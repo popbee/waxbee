@@ -52,7 +52,7 @@ Native libraries not well handled and specific to Windows for now. (code is pres
 
 ### Interfacing ADB
 
-Some rough instructions to interface ADB Wacom tablets here: [InterfacingADB]
+Some rough instructions to interface ADB Wacom tablets here: [Interfacing ADB](https://github.com/popbee/waxbee/wiki/Interfacing-ADB)
 
 ### USB Virtual Serial Port
 This project implements a virtual Serial port on the Teensy 2.0 specifically targeted to talk to tablets for testing purposes (original code courtesy of prjc.com - forked from V1.7). Please check out http://www.pjrc.com/teensy/usb_serial.html 
