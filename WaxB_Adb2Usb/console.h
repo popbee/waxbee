@@ -25,9 +25,9 @@ namespace console
 	void print(const char* str);
 
 	/** @param progmem_str address of string stored in 'program memory'. */
-	void printP(prog_char* progmem_str);
+	void printP(const prog_char* progmem_str);
 	/** @param progmem_str address of string stored in 'program memory'. */
-	void printlnP(prog_char* progmem_str);
+	void printlnP(const prog_char* progmem_str);
 
 	void println();
 	void println(const char* str);

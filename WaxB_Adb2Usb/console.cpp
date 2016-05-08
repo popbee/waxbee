@@ -41,7 +41,7 @@ namespace console
 	}
 
 	/** @param progmem_str address of string stored in 'program memory'. */
-	void printP(prog_char* progmem_str)
+	void printP(const prog_char* progmem_str)
 	{
 		if(!console_enabled)
 			return;
@@ -58,7 +58,7 @@ namespace console
 	}
 
 	/** @param progmem_str address of string stored in 'program memory'. */
-	void printlnP(prog_char* progmem_str)
+	void printlnP(const prog_char* progmem_str)
 	{
 		printP(progmem_str);
 		println();
