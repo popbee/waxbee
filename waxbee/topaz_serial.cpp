@@ -112,7 +112,7 @@ namespace topaz_serial
 
 	void init()
 	{
-		console::printlnP(STR_TOPAZ_SERIAL_INIT);
+		CONSOLE_PRINTLNP(STR_TOPAZ_SERIAL_INIT);
 
 		serial::init(onSerialByteReceived);
 		serial::setNormalPortSpeed();

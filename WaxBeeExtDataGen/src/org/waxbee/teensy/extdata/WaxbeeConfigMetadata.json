@@ -1,6 +1,42 @@
 {
 	identifier_prefix: 'EXTDATA_',
 
+	build_variants:
+	{
+		waxbee_full: { description: 'Everything included', supports: [
+			'DEBUG_SUPPORT','INITGPIO_SUPPORT','TOUCH_SUPPORT','BUTTON_SUPPORT',
+			'ADB_SUPPORT','USB_PROTOCOL_IV_SUPPORT','USB_PROTOCOL_V_SUPPORT',
+			'SERIAL_ISDV4_SUPPORT','SERIAL_PROTOCOL_IV_SUPPORT','SERIAL_PROTOCOL_V_SUPPORT','SERIAL_TOPAZ_SUPPORT'
+		]},
+		waxbee_debug: { description: 'Full Debugging (console on USB)',  supports: [
+			'DEBUG_SUPPORT','INITGPIO_SUPPORT','TOUCH_SUPPORT','BUTTON_SUPPORT','ADB_SUPPORT',
+			'SERIAL_ISDV4_SUPPORT','SERIAL_PROTOCOL_IV_SUPPORT','SERIAL_PROTOCOL_V_SUPPORT','SERIAL_TOPAZ_SUPPORT'
+		]},
+		waxbee_adb: { description: 'ADB Tablet',  supports: [
+			'INITGPIO_SUPPORT','ADB_SUPPORT','USB_PROTOCOL_IV_SUPPORT','USB_PROTOCOL_V_SUPPORT'
+		]},
+		waxbee_adb_debug: { description: 'Debugging of ADB Tablet (console on USB)', supports: [
+			'DEBUG_SUPPORT','INITGPIO_SUPPORT','BUTTON_SUPPORT','ADB_SUPPORT'
+		]},
+		waxbee_serial_debug: { description: 'Debugging of Serial Tablet (no ISDV4)',supports: [
+			'DEBUG_SUPPORT','INITGPIO_SUPPORT','TOUCH_SUPPORT','BUTTON_SUPPORT',
+			'SERIAL_PROTOCOL_IV_SUPPORT','SERIAL_PROTOCOL_V_SUPPORT'
+		]},
+		waxbee_serial: { description: 'Serial Tablet (not ISDV4)', supports: [
+			'INITGPIO_SUPPORT','TOUCH_SUPPORT','BUTTON_SUPPORT',
+			'USB_PROTOCOL_IV_SUPPORT','USB_PROTOCOL_V_SUPPORT',
+			'SERIAL_PROTOCOL_IV_SUPPORT','SERIAL_PROTOCOL_V_SUPPORT'
+		]},
+		waxbee_isdv4: { description: 'ISDV4 Serial Tablet', supports: [
+			'INITGPIO_SUPPORT','TOUCH_SUPPORT','BUTTON_SUPPORT',
+			'USB_PROTOCOL_IV_SUPPORT','USB_PROTOCOL_V_SUPPORT',
+			'SERIAL_ISDV4_SUPPORT'
+		]},
+		waxbee_isdv4_debug: { description: 'Debugging of ISDV4 Serial Tablet (console on USB)', supports: [
+			'DEBUG_SUPPORT','INITGPIO_SUPPORT','TOUCH_SUPPORT','BUTTON_SUPPORT','SERIAL_ISDV4_SUPPORT'
+		]}
+	},
+
 	constants:
 	{
 		VERSION : 4,
@@ -25,7 +61,7 @@
 				DISABLED:  { 
 					value:0, 
 					name:'Disabled', 
-					comment:'USB Port is turned off' 
+					comment:'USB Port is turned off'
 				},
 				DIGITIZER: { 
 					value:1, 
@@ -35,7 +71,8 @@
 				DEBUG:     { 
 					value:2, 
 					name:'Debug Console', 
-					comment:'USB Port set as a Debug Console (hid_listen utility)' 
+					comment:'USB Port set as a Debug Console (hid_listen utility)',
+					requires:'DEBUG_SUPPORT'
 				}
 			}
 		},
@@ -58,7 +95,8 @@
 				DEBUG: {
 					value:2,
 					name:'Debugging Output',
-					comment:'Serial Port is used as the console port output for debuging purposes'
+					comment:'Serial Port is used as the console port output for debuging purposes',
+					requires:'DEBUG_SUPPORT'
 				}
 			}
 		},
@@ -76,7 +114,8 @@
 				SLAVE_DIGITIZER: {
 					value:1,
 					name:'Slave Tablet Digitizer',
-					comment:'ADB Port is used to talk to an ADB Tablet'
+					comment:'ADB Port is used to talk to an ADB Tablet',
+					requires:'ADB_SUPPORT'
 				}
 			}
 		},
@@ -143,22 +182,26 @@
 				WACOM_PROTOCOL4:
 				{
 					value:4,
-					name:'Wacom Protocol 4'
+					name:'Wacom Protocol 4',
+					requires:'USB_PROTOCOL_IV_SUPPORT'					
 				},
 				WACOM_PROTOCOL5:
 				{
 					value:5,
-					name:'Wacom Protocol 5'
+					name:'Wacom Protocol 5',
+					requires:'USB_PROTOCOL_V_SUPPORT'
 				},
 				WACOM_BAMBOO_TOUCH:
 				{
 					value:6,
-					name:'Wacom Bamboo Touch'
+					name:'Wacom Bamboo Touch',
+					requires:'USB_PROTOCOL_IV_SUPPORT'
 				},
 				WACOM_INTUOS5:
 				{
 					value:7,
-					name:'Wacom Intuos 5'
+					name:'Wacom Intuos 5',
+					requires:'USB_PROTOCOL_V_SUPPORT'
 				}
 			}
 		},
@@ -270,27 +313,32 @@
 				WACOM_ISDV4:
 				{
 					value:2,
-					name:'Wacom ISDV4 (Penenabled)'
+					name:'Wacom ISDV4 (Penenabled)',
+					requires:'SERIAL_ISDV4_SUPPORT'
 				},
 				WACOM_ISDV4_TOUCH:
 				{
 					value:5,
-					name:'Wacom ISDV4 + Touch (Penenabled)'
+					name:'Wacom ISDV4 + Touch (Penenabled)',
+					requires:'SERIAL_ISDV4_SUPPORT,TOUCH_SUPPORT'
 				},
 				WACOM_PROTOCOL4:
 				{
 					value:4,
-					name:'Wacom Protocol 4'
+					name:'Wacom Protocol 4',
+					requires:'SERIAL_PROTOCOL_IV_SUPPORT'
 				},
 				WACOM_PROTOCOL5:
 				{
 					value:3,
-					name:'Wacom Protocol 5'
+					name:'Wacom Protocol 5',
+					requires:'SERIAL_PROTOCOL_V_SUPPORT'
 				},
 				TOPAZ:
 				{
 					value:6,
-					name:'Topaz tablet'
+					name:'Topaz tablet',
+					requires:'SERIAL_TOPAZ_SUPPORT'
 				}
 			}
 		},
@@ -472,6 +520,5 @@
 			name:'Debug Data',
 			comment: 'Multi-purpose internal debug data. To be left empty for normal operation.'
 		}
-		
 	}
 }

@@ -29,6 +29,7 @@ abstract public class ConfigItem
 	public void setName(String name) { itsName = name; }
 	public void setItemComment(String itemComment) { itsItemComment = itemComment; }
 
+	public String[] getRequires() throws Exception { return null; }
 	abstract int getExtDataSize();
 	abstract String getType();
 	abstract public void renderData(Appendable out) throws IOException;
@@ -138,7 +139,11 @@ abstract public class ConfigItem
 			
 			throw new Exception("Enum value "+itsValue+" is unrecognized");
 		}
-		
+
+		public String[] getRequires() throws Exception 
+		{
+			return currentEnum().getRequires();
+		}
 		
 		public List<EnumValue> getEnumValues() { return itsEnumValues; }
 		public void setEnumValues(List<EnumValue> enumValues) { itsEnumValues = enumValues; }
@@ -166,22 +171,25 @@ abstract public class ConfigItem
 	final public static class EnumValue
 	{
 		public EnumValue(int value, String configId, String name,
-				String comment) 
+				String comment, String[] requires) 
 		{
 			itsValue = value;
 			itsConfigId = configId;
 			itsName = name;
 			itsComment = comment;
+			itsRequires = requires;
 		}
 		int		itsValue;
 		String	itsConfigId;
 		String	itsName;
 		String	itsComment;
+		String[] itsRequires;
 		
 		public int getValue() { return itsValue; }
 		public String getConfigId() { return itsConfigId; }
 		public String getName() { return itsName; }
 		public String getComment() { return itsComment; }
+		public String[] getRequires() { return itsRequires; }
 		public void setValue(int value) { itsValue = value; }
 		public void setConfigId(String configId) { itsConfigId = configId; }
 		public void setName(String name) { itsName = name; }

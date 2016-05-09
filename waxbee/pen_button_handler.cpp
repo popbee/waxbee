@@ -73,7 +73,7 @@ namespace PenButtonHandler
 					return true;
 				}
 				default:
-					console::printlnP(STR_UNRECOGNIZED_ACTIVE_AREA_RECORD_TYPE);
+					CONSOLE_PRINTLNP(STR_UNRECOGNIZED_ACTIVE_AREA_RECORD_TYPE);
 			}
 		}
 		return false;

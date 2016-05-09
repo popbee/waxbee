@@ -11,7 +11,7 @@ IF NOT EXIST "%JAR_EXE%" GOTO ERROR
 
 set ROOT=%~dp0.
 set DISTRIBDIR=%ROOT%\distrib
-set AVRPROJECTROOT=%ROOT%\..\WaxB_Adb2Usb
+set AVRPROJECTROOT=%ROOT%\..\waxbee
 
 rem cleanup the last distrib and start fresh
 rd "%DISTRIBDIR%" /s /q 
@@ -24,7 +24,8 @@ xcopy "%ROOT%\bin\org" "%DISTRIBDIR%\jar\org\" /E
 copy "%ROOT%\teensylib\teensy64.dll" "%DISTRIBDIR%\jar\" > nul
 copy "%ROOT%\teensylib\teensy32.dll" "%DISTRIBDIR%\jar\" > nul
 copy "%ROOT%\rawhidlib\rawhid64.dll" "%DISTRIBDIR%\jar\" > nul
-copy "%AVRPROJECTROOT%\Release\WaxB_Adb2Usb.hex" "%DISTRIBDIR%\jar\" > nul
+rem copy variants, assume they all start with "waxbee_" 
+copy "%AVRPROJECTROOT%\Release\waxbee_*.hex" "%DISTRIBDIR%\jar\" > nul
 
 rem final package to zipping
 mkdir "%DISTRIBDIR%\waxbee"

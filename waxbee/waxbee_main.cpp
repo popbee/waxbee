@@ -188,7 +188,7 @@ int main(void)
 #ifdef DEBUG_SUPPORT
 	console::init();
 
-	console::printlnP(STR_WAXBEE_WELCOME);
+	CONSOLE_PRINTLNP(STR_WAXBEE_WELCOME);
 #endif
 
 #ifdef INITGPIO_SUPPORT

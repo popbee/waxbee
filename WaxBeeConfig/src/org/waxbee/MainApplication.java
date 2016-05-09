@@ -14,6 +14,8 @@ import java.awt.Panel;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -23,15 +25,23 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -46,6 +56,7 @@ import javax.swing.JToolBar;
 import net.miginfocom.swing.MigLayout;
 
 import org.waxbee.teensy.FirmwareImage;
+import org.waxbee.teensy.extdata.BuildVariant;
 import org.waxbee.teensy.extdata.ConfigFileParser;
 import org.waxbee.teensy.extdata.ConfigFileWriter;
 import org.waxbee.teensy.extdata.ConfigItem;
@@ -61,7 +72,7 @@ import org.waxbee.teensy.extdata.WaxbeeConfig;
 @SuppressWarnings("serial")
 public class MainApplication extends JFrame
 {
-	private static final String VERSION = "0.15a"; // Keep version in sync inside strings.h !!
+	private static final String VERSION = "0.16"; // Keep version in sync inside strings.h !!
 
 	private static final String TEMPLATE_EXTENSION_PATTERN = "*.tmpl.txt";
 
@@ -70,11 +81,17 @@ public class MainApplication extends JFrame
 	public static MainApplication theMainApp;
 
 	WaxbeeConfig itsWaxbeeConfig;
-
+	List<FirmwareVariant> itsFirmwareVariants;
+	private FirmwareVariant itsSelectedFirmware;
+	
 	private JComboBox itsMonitorsCombo;
 
 	private JLabel itsConfigNameLabel;
 	private JLabel itsConfigDescLabel;
+	private JLabel itsConfigRequiresLabel;
+
+	private JComboBox itsFirmwareVariantCombo;
+	private JLabel itsConfigSupportsLabel;
 
 	private JLabel itsCoordinatesMappingSummaryLabel;
 	
@@ -108,12 +125,52 @@ public class MainApplication extends JFrame
 		p2.add(new JLabel("Description :"),"gap indent, aligny top");
 		p2.add(itsConfigDescLabel = new JLabel(""), "wmin 1,growx,wrap");
 
-		addSeparator(p, "Coordinates Mapping");
-
-		p.add(itsCoordinatesMappingSummaryLabel = new JLabel(""), 
-				"gap indent, growx, width 10px:300px:");
+		p2.add(new JLabel("Requires :"),"gap indent, aligny top");
+		p2.add(itsConfigRequiresLabel = new JLabel(""), "wmin 1,growx,wrap");
 		
-		p.add(new JLabel("<html>Tip: For <u>special coordinates mapping</u>** to work correctly, " +
+		addSeparator(p, "Firmware Selection");
+		
+		JCheckBox check = new JCheckBox("Auto select firmware based on requirements",true);
+		p.add(check, "gap indent");
+
+		itsFirmwareVariantCombo = new JComboBox();
+		itsFirmwareVariantCombo.setEnabled(false);
+		//itsFirmwareVariantCombo.setSelectedIndex(0);
+		p.add(itsFirmwareVariantCombo, "gap indent");
+		
+		check.setOpaque(false);
+        check.addItemListener(new ItemListener() {
+			@Override public void itemStateChanged(ItemEvent e)
+			{
+                itsFirmwareVariantCombo.setEnabled(e.getStateChange() != ItemEvent.SELECTED);
+                if(e.getStateChange() == ItemEvent.SELECTED) {
+	                try {
+	                	autoPickFirmwareIfRequired();
+	                } catch(Exception ex) {}
+	            	displayConfig();	
+                }
+			}});
+
+        itsFirmwareVariantCombo.addItemListener(new ItemListener() {
+			@Override public void itemStateChanged(ItemEvent ev)
+			{
+				if(ev.getStateChange() == ItemEvent.SELECTED) {
+					
+					FirmwareVariant v = (FirmwareVariant)ev.getItem();
+					if(v != null && v != itsSelectedFirmware) {
+						itsSelectedFirmware = v;
+						displayConfig();
+					}
+				}
+			}});
+		p.add(itsConfigSupportsLabel = new JLabel("Supports :"), "gap indent, growx, width 10px:400px:");
+        
+		/*addSeparator(p, "Coordinates Mapping");*/
+
+		/*p.add*(*/itsCoordinatesMappingSummaryLabel = new JLabel("");/*, 
+				"gap indent, growx, width 10px:300px:";);*/
+		
+		/*p.add(new JLabel("<html>Tip: For <u>special coordinates mapping</u>** to work correctly, " +
 				"the settings of the native (Wacom) USB driver must map the whole tablet area " +
 				"to the entire <b>target monitor</b> and without any special mapping feature " +
 				"like keeping the proportions.<p> <i>**Tip not applicable to 'full mapping' mode since it implies no special coordinates mapping"), 
@@ -123,7 +180,7 @@ public class MainApplication extends JFrame
 		itsMonitorsCombo = new JComboBox(new Vector<Monitor>(fetchMonitors()));
 		itsMonitorsCombo.setSelectedIndex(0);
 		p.add(itsMonitorsCombo, "wmin 40,grow 0,wrap");
-
+*/
 		setIconImage(getImage("appicon.png"));
 		setTitle("Waxbee Config " + VERSION);
 
@@ -135,7 +192,12 @@ public class MainApplication extends JFrame
 		{
 			itsWaxbeeConfig = ConfigTemplate.create();
 		}
-	
+
+		try {
+			autoPickFirmwareIfRequired();
+		}
+		catch(Exception ex) {}
+		
 		displayConfig();
 		pack();
 		setLocationRelativeTo(null);
@@ -172,6 +234,7 @@ public class MainApplication extends JFrame
 					{
 						itsWaxbeeConfig = ConfigFileParser.loadFile(filename);
 
+						autoPickFirmwareIfRequired();
 						saveConfig();
 						displayConfig();
 						pack();
@@ -221,6 +284,7 @@ public class MainApplication extends JFrame
 					editor = new ExtDataEditor(MainApplication.this, itsWaxbeeConfig);
 					editor.setVisible(true);
 					
+					autoPickFirmwareIfRequired();
 					saveConfig();
 					displayConfig();
 					pack();
@@ -304,7 +368,7 @@ public class MainApplication extends JFrame
 				try
 				{
 					ProgramDialog dlg = new ProgramDialog(MainApplication.this);
-					dlg.program(itsWaxbeeConfig);
+					dlg.program(getSelectedFirmware().getFirmwareName(), itsWaxbeeConfig);
 				}
 				catch (Exception ex)
 				{
@@ -335,7 +399,7 @@ public class MainApplication extends JFrame
 					
 					StringBuilder report = new StringBuilder();
 					
-					FirmwareImage outputImage = encodeFirmware(itsWaxbeeConfig, report);
+					FirmwareImage outputImage = encodeFirmware(getSelectedFirmware().getFirmwareName(), itsWaxbeeConfig, report);
 
 					FileWriter out = new FileWriter(filepath);
 					outputImage.generateIntelHex(out);
@@ -453,13 +517,39 @@ public class MainApplication extends JFrame
 		panel.add(new JSeparator(), "gapleft rel, growx");
 	}
 
+	protected void autoPickFirmwareIfRequired() throws Exception
+	{
+		String[] requires = itsWaxbeeConfig.getRequires();
+
+		// *** only if autoselect checked...
+		
+		List<FirmwareVariant> variants = fetchFirmwareVariants();
+		
+		nextvariant: 
+			for(FirmwareVariant variant : variants) {
+				Set<String> supports = variant.getSupports();
+				for(int i=0;i<requires.length;i++) {
+					if(!supports.contains(requires[i]))
+						continue nextvariant;
+				}
+				// got a matching variant
+				itsSelectedFirmware = variant;
+				return;
+			}
+		throw new Exception("Could not find a firmware image with all the Requirements (that's most likely a bug)");
+	}
+
 	private void displayConfig()
 	{
 		try
 		{
-
 			itsConfigNameLabel.setText("<html>"+optionalStr(itsWaxbeeConfig.getName()));
 			itsConfigDescLabel.setText("<html>"+optionalStr(itsWaxbeeConfig.getDescription()));
+			itsConfigRequiresLabel.setText("<html>"+listStringArray(itsWaxbeeConfig.getRequires()));
+			
+			itsFirmwareVariantCombo.setModel(new DefaultComboBoxModel(new Vector<FirmwareVariant>(fetchFirmwareVariants())));
+			itsFirmwareVariantCombo.setSelectedItem(getSelectedFirmware());
+			itsConfigSupportsLabel.setText("<html>Supports : "+listStringArray(getSelectedFirmware().itsBuild.getSupports()));
 			
 			StringBuilder mapping = new StringBuilder("<html>Mode : ");
 	
@@ -489,6 +579,20 @@ public class MainApplication extends JFrame
 			JOptionPane.showMessageDialog(MainApplication.this, ex.getMessage());
 		}
 
+	}
+	
+	private String listStringArray(String[] items) 
+	{
+		if(items == null)
+			return "--";
+		
+		StringBuilder sbStr = new StringBuilder();
+	    for (int i = 0, il = items.length; i < il; i++) {
+	        if (i > 0)
+	            sbStr.append(", ");
+	        sbStr.append(items[i]);
+	    }
+	    return sbStr.toString();
 	}
 	
 	private String optionalStr(String str)
@@ -586,6 +690,78 @@ public class MainApplication extends JFrame
 		new ConfigFileWriter(itsWaxbeeConfig).save(new File(WAXBEE_CONFIG_TXT));
 	}
 	
+	class FirmwareVariant {
+		@Override
+		public String toString()
+		{
+			double kilos = ((double)itsFirmwareSize) / 1024.0;
+			return itsBuild.getName() + String.format(Locale.ENGLISH, "   (%.2fK)", kilos);
+		}
+
+		BuildVariant itsBuild;
+		
+		/** .hex suffix included */
+		String itsFirmwareName;
+		
+		int	itsFirmwareSize;
+		HashSet<String> itsSupports;
+		
+		public FirmwareVariant(BuildVariant build, String name, int size)
+		{
+			itsBuild = build;
+			itsFirmwareName = name;
+			itsFirmwareSize = size;
+		}
+
+		public String getFirmwareName() { return itsFirmwareName; }		
+		public int getFirmwareSize() { return itsFirmwareSize; }
+		public Set<String> getSupports() {
+			if(itsSupports == null) {
+				String[] array = itsBuild.getSupports();
+				HashSet<String> supports = new HashSet<String>(array.length);
+				for(int i=0;i<array.length;i++) {
+					supports.add(array[i]);
+				}
+				itsSupports = supports;
+			}
+			
+			return itsSupports;
+		}
+	}
+	
+	private List<FirmwareVariant> fetchFirmwareVariants() throws Exception
+	{
+		if(itsFirmwareVariants == null)
+		{
+			List<BuildVariant> builds = ConfigTemplate.createBuildVariantList();
+	
+			ArrayList<FirmwareVariant> variants = new ArrayList<FirmwareVariant>(builds.size());
+	
+			for(BuildVariant build : builds) {
+				String firmwareName = build.getName() + ".hex";
+				variants.add(new FirmwareVariant(build, firmwareName, fetchFirmwareSize(firmwareName)));
+			}
+			
+			Collections.sort(variants, new Comparator<FirmwareVariant>() {
+
+				@Override
+				public int compare(FirmwareVariant a, FirmwareVariant b)
+				{
+					return a.itsFirmwareSize - b.itsFirmwareSize;
+				}				
+			});
+			
+			itsFirmwareVariants = variants;
+		}
+		
+		return itsFirmwareVariants;
+	}
+
+	private int fetchFirmwareSize(String name) throws Exception
+	{
+		return loadFirmware(name).getSpanSize();
+	}
+
 	/**
 	 * 
 	 * @return list of monitors. The first entry corresponds to the primary monitor
@@ -624,14 +800,9 @@ public class MainApplication extends JFrame
 		return monitors;
 	}
 
-	public static FirmwareImage encodeFirmware(WaxbeeConfig waxbeeConfig, Appendable report) throws Exception
+	public static FirmwareImage encodeFirmware(String firmwarename, WaxbeeConfig waxbeeConfig, Appendable report) throws Exception
 	{
-		InputStream is = MainApplication.class.getClassLoader().getResourceAsStream("WaxB_Adb2Usb.hex");
-		
-		InputStreamReader file = new InputStreamReader(is, "UTF-8");
-		FirmwareImage firmwareImage = new FirmwareImage();
-		firmwareImage.loadIntelHex(file);
-		file.close();
+		FirmwareImage firmwareImage = loadFirmware(firmwarename);
 
 		WaxBeeConfigEncoder waxbeeConfigEncoder = new WaxBeeConfigEncoder();
 		
@@ -639,4 +810,23 @@ public class MainApplication extends JFrame
 		return outputImage;
 	}
 
+	private static FirmwareImage loadFirmware(String name) throws UnsupportedEncodingException,
+			Exception, IOException
+	{
+		InputStream is = MainApplication.class.getClassLoader().getResourceAsStream(name);
+		
+		InputStreamReader file = new InputStreamReader(is, "UTF-8");
+		FirmwareImage firmwareImage = new FirmwareImage();
+		firmwareImage.loadIntelHex(file);
+		file.close();
+		return firmwareImage;
+	}
+
+	public FirmwareVariant getSelectedFirmware() { 
+		if(itsSelectedFirmware == null) 
+			if(itsFirmwareVariants != null)
+				itsSelectedFirmware = itsFirmwareVariants.get(0);
+
+		return itsSelectedFirmware;
+	}
 }

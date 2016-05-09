@@ -18,6 +18,7 @@
  *
  * NOTE: Button::init() needs to be called at startup
  */
+#ifdef BUTTON_SUPPORT
 namespace Button
 {
 	static uint8_t	buttonEncoding;
@@ -43,18 +44,19 @@ namespace Button
 
 		if(console::console_enabled)
 		{
-			console::printP(STR_BUTTON_NO);
+			CONSOLE_PRINTP(STR_BUTTON_NO);
 			console::printNumber(buttonEvent.buttonNumber);
 			console::print(" : ");
 			switch(buttonEvent.state)
 			{
-				case Button::in:		console::printlnP(STR_IN); break;
-				case Button::hovering:		console::printlnP(STR_HOVERING); break;
-				case Button::down:		console::printlnP(STR_DOWN); break;
-				case Button::held_down:		console::printlnP(STR_HELD_DOWN); break;
-				case Button::up:		console::printlnP(STR_UP); break;
-				case Button::out:		console::printlnP(STR_OUT); break;
+				case Button::in:		CONSOLE_PRINTLNP(STR_IN); break;
+				case Button::hovering:		CONSOLE_PRINTLNP(STR_HOVERING); break;
+				case Button::down:		CONSOLE_PRINTLNP(STR_DOWN); break;
+				case Button::held_down:		CONSOLE_PRINTLNP(STR_HELD_DOWN); break;
+				case Button::up:		CONSOLE_PRINTLNP(STR_UP); break;
+				case Button::out:		CONSOLE_PRINTLNP(STR_OUT); break;
 			}
 		}
 	}
 }
+#endif

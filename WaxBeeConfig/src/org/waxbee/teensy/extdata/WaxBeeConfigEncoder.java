@@ -5,6 +5,7 @@ package org.waxbee.teensy.extdata;
 
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.Locale;
 
 import org.waxbee.teensy.FirmwareImage;
 
@@ -61,10 +62,17 @@ public class WaxBeeConfigEncoder
 			itsReport.append("Firmware size augmented of " +
 					(itsFirmwareImage.getSpanSize() - image.getSpanSize()) + " bytes:\n");
 
-			itsReport.append("Original size: "+image.getMaxLocation()+" (0x" + Integer.toString(image.getMaxLocation(), 16)+")\n");
-			itsReport.append("Modified size: "+itsFirmwareImage.getMaxLocation()+" (0x" + Integer.toString(itsFirmwareImage.getMaxLocation(), 16)+")\n");
+			itsReport.append("Original size: "+kilobytes(image.getMaxLocation())+" "+image.getMaxLocation()+" (0x" + Integer.toString(image.getMaxLocation(), 16)+")\n");
+			itsReport.append("Modified size: "+kilobytes(itsFirmwareImage.getMaxLocation())+" "+itsFirmwareImage.getMaxLocation()+" (0x" + Integer.toString(itsFirmwareImage.getMaxLocation(), 16)+")\n");
 		}
 		return itsFirmwareImage;
+	}
+
+	private String kilobytes(int value)
+	{
+		double kilos = ((double)value) / 1024.0;
+		
+		return String.format(Locale.ENGLISH, "%.2fK", kilos);
 	}
 
 	private void putUInt16(int address, int value16)

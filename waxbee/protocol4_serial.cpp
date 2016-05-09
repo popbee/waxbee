@@ -141,7 +141,7 @@ namespace protocol4_serial
 
 		if(console::console_enabled)
 		{
-			console::printP(STR_SERIAL_TABLET_);
+			CONSOLE_PRINTP(STR_SERIAL_TABLET_);
 			for(uint8_t i=2;i<datalen;i++)
 				console::print(buffer[i]);
 			console::println();
@@ -149,25 +149,25 @@ namespace protocol4_serial
 			switch(tabletType)
 			{
 				case TABLET_TYPE_UNSUPPORTED:
-					console::printP(STR_UNSUPPORTED);
+					CONSOLE_PRINTP(STR_UNSUPPORTED);
 					break;
 				case TABLET_TYPE_ULTRAPAD:
-					console::printP(STR_ULTRAPAD);
+					CONSOLE_PRINTP(STR_ULTRAPAD);
 					break;
 				case TABLET_TYPE_ARTPADII:
-					console::printP(STR_ARTPADII);
+					CONSOLE_PRINTP(STR_ARTPADII);
 					break;
 				case TABLET_TYPE_PENPARTNER:
-					console::printP(STR_PENPARTNER);
+					CONSOLE_PRINTP(STR_PENPARTNER);
 					break;
 			}
 
-			console::printP(STR_ROM_VERSION);
+			CONSOLE_PRINTP(STR_ROM_VERSION);
 
 			switch(romVersion)
 			{
 				case ROM_VERSION_UNSUPPORTED:
-					console::printP(STR_UNSUPPORTED);
+					CONSOLE_PRINTP(STR_UNSUPPORTED);
 					break;
 				case ROM_VERSION_1_2:
 					console::print("1.2");
@@ -389,17 +389,17 @@ namespace protocol4_serial
 								eraser_mode = false;
 							}
 
-							console::printP(STR_ENTER_PROX);
+							CONSOLE_PRINTP(STR_ENTER_PROX);
 							if(eraser_mode)
-								console::printlnP(STR_ERASER);
+								CONSOLE_PRINTLNP(STR_ERASER);
 							else
-								console::printlnP(STR_PEN);
+								CONSOLE_PRINTLNP(STR_PEN);
 							console::println();
 						}
 					}
 					else if(!penEvent.proximity)
 					{
-						console::printP(STR_EXIT_PROX);
+						CONSOLE_PRINTP(STR_EXIT_PROX);
 						console::println();
 						resetToolState();
 					}
@@ -449,7 +449,7 @@ namespace protocol4_serial
 
 	void init()
 	{
-		console::printP(STR_PROTOCOL4_SERIAL_INIT);
+		CONSOLE_PRINTP(STR_PROTOCOL4_SERIAL_INIT);
 
 		resetToolState();
 

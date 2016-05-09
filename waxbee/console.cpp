@@ -84,6 +84,15 @@ namespace console
 		println();
 	}
 
+	void printBinary(uint8_t d, int8_t startbit, int8_t endbit)
+	{
+		if(!console_enabled)
+			return;
+
+		for(int8_t j=endbit; j>=startbit; j--)
+			console::do_print((d & 1<<j)?'1':'0');
+	}
+
 	void print(char c)
 	{
 		if(!console_enabled)
@@ -116,6 +125,50 @@ namespace console
 
 			number <<= 1;
 		}
+	}
+
+	void printNumberFixedLength(long number, uint8_t len)
+	{
+		if(!console_enabled)
+			return;
+
+		unsigned char buf[len];
+		unsigned long i = len;
+
+		if(len < 2)
+			return;
+
+		unsigned char sign = '.';
+
+		if (number == 0)
+		{
+			buf[--i] = (uint8_t)'0';
+		}
+		else
+		{
+
+			if(number < 0)
+			{
+				sign = (uint8_t)'-';
+				number = -number;
+			}
+
+			while (number > 0)
+			{
+				buf[--i] = '0' + (number % 10);
+				number /= 10;
+				if(i == 1)
+					break;
+			}
+		}
+
+		buf[--i] = sign;
+
+		for(uint8_t j=0; j<i; j++)
+			do_print('.');
+
+		while (i < len)
+			do_print((char)(buf[i++]));
 	}
 
 	void printNumber(long number)

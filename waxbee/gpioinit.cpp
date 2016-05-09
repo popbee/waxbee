@@ -22,16 +22,24 @@ namespace GpioInit
 
 		return number;
 	}
-	
+
+#ifdef DEBUG_SUPPORT
+#define REPORTGPIOERRORP(x) reportGpioErrorP(x)
+#else
+#define REPORTGPIOERRORP(x)
+#endif
+
+#ifdef DEBUG_SUPPORT
 	static void reportGpioErrorP(const prog_char* progmem_str)
 	{
-		console::printP(STR_GPIO_INIT);
-		console::printP(progmem_str);
+		CONSOLE_PRINTP(STR_GPIO_INIT);
+		CONSOLE_PRINTP(progmem_str);
 	}
-	
+#endif
+
 	static void reportGpioInvalidCommand()
 	{
-		reportGpioErrorP(STR_INVALID_PORT_COMMAND);
+		REPORTGPIOERRORP(STR_INVALID_PORT_COMMAND);
 	}
 	
 	/** The 3 character commands are of the form:  
@@ -133,7 +141,7 @@ namespace GpioInit
 			{
 				if(len < 2)
 				{
-					reportGpioErrorP(STR_INVALID_PAUSE_COMMAND);
+					REPORTGPIOERRORP(STR_INVALID_PAUSE_COMMAND);
 					return false;
 				}
 				
@@ -152,8 +160,8 @@ namespace GpioInit
 			case 'F':
 				return processPortCommand(cmd, len, errors_only);
 			default:
-				reportGpioErrorP(STR_ERROR_PARSING_INIT_STRING);
-				console::printP(STR_BAD_CHAR);
+				REPORTGPIOERRORP(STR_ERROR_PARSING_INIT_STRING);
+				CONSOLE_PRINTP(STR_BAD_CHAR);
 				return false; // error, abort
 		}
 	
@@ -178,8 +186,8 @@ namespace GpioInit
 				cmdlen++;
 				if(cmdlen > 8)
 				{
-					reportGpioErrorP(STR_ERROR_PARSING_INIT_STRING);
-					console::printP(STR_CMD_TOO_LONG_POS);
+					REPORTGPIOERRORP(STR_ERROR_PARSING_INIT_STRING);
+					CONSOLE_PRINTP(STR_CMD_TOO_LONG_POS);
 					console::printNumber(index);
 					console::println(")");
 					return false;

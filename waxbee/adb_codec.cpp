@@ -23,6 +23,10 @@
 //
 //---------------------------------------------------------
 
+#include "featureinclusion.h"
+
+#ifdef ADB_SUPPORT
+
 #include <avr/interrupt.h>
 #include "led.h"
 #include "avr_util.h"
@@ -784,7 +788,7 @@ namespace ADB
 				{
 					errorAndResetDecoder(13); // invalid stop2start (too small)
 #ifdef DEBUG_SUPPORT
-					console::printP(STR_STOP2START_TIME_TOO_SMALL);
+					CONSOLE_PRINTP(STR_STOP2START_TIME_TOO_SMALL);
 					console::printNumber(pulseTime);
 					console::println(" us");
 #endif
@@ -897,3 +901,4 @@ ISR(TIMER3_COMPA_vect)
 {
 	ADB::timeoutInterrupt();
 }
+#endif

@@ -60,7 +60,7 @@ namespace DebugProc
 
 	static void trigger(bool repeating)
 	{
-		console::printlnP(STR_TRIGGER);
+		CONSOLE_PRINTLNP(STR_TRIGGER);
 
 		state = delay_before_start;
 
@@ -103,13 +103,13 @@ namespace DebugProc
 
 			if(packet_size > MAXPACKET)
 			{
-				console::printP(STR_DEBUG_PACKET_SIZE_TOO_LARGE_MAX);
+				CONSOLE_PRINTP(STR_DEBUG_PACKET_SIZE_TOO_LARGE_MAX);
 				console::printNumber(MAXPACKET);
 				console::println();
 				return false;
 			}
 
-			console::printP(STR_DEBUG_ACTIVITY_ENABLED_SECONDS);
+			CONSOLE_PRINTP(STR_DEBUG_ACTIVITY_ENABLED_SECONDS);
 			console::printNumber(startDelaySeconds);
 			console::println();
 
@@ -127,7 +127,7 @@ namespace DebugProc
 	
 	void proxOutTrigger()
 	{
-//		console::printlnP(STR_PROXOUTTRIGGER);
+//		CONSOLE_PRINTLNP(STR_PROXOUTTRIGGER);
 
 		if(!trigOnProxOut)
 			return;
@@ -178,7 +178,7 @@ namespace DebugProc
 				break;
 			case delay_before_start:
 			{
-				console::printP(STR_DELAY_BEFORE_START_SECONDS);
+				CONSOLE_PRINTP(STR_DELAY_BEFORE_START_SECONDS);
 				console::printNumber(startCountdownSeconds);
 				console::println();
 
@@ -196,20 +196,20 @@ namespace DebugProc
 				if(doActivity())
 				{
 					// activity done
-					console::printP(STR_ACTIVITY_DONE);
+					CONSOLE_PRINTP(STR_ACTIVITY_DONE);
 
 					iterationsCountdown--;
 
 					if(iterationsCountdown > 0)
 					{
-						console::printP(STR_REPEATING);
+						CONSOLE_PRINTP(STR_REPEATING);
 						console::println();
 
 						trigger(true); // repeat
 					}
 					else
 					{
-						console::printP(STR_STOP);
+						CONSOLE_PRINTP(STR_STOP);
 						console::println();
 
 						reset(); // stop

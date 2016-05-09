@@ -16,19 +16,54 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>src/WaxB_Adb2Usb.hex</name>
+			<name>src/waxbee_debug.hex</name>
 			<type>1</type>
-			<locationURI>WORKSPACE_LOC/WaxB_Adb2Usb/Release/WaxB_Adb2Usb.hex</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/waxbee/Release/waxbee_debug.hex</locationURI>
+		</link>
+		<link>
+			<name>src/waxbee_full.hex</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/waxbee/Release/waxbee_full.hex</locationURI>
+		</link>
+		<link>
+			<name>src/waxbee_isdv4.hex</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/waxbee/Release/waxbee_isdv4.hex</locationURI>
+		</link>
+		<link>
+			<name>src/waxbee_adb.hex</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/waxbee/Release/waxbee_adb.hex</locationURI>
+		</link>
+		<link>
+			<name>src/waxbee_adb_debug.hex</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/waxbee/Release/waxbee_adb_debug.hex</locationURI>
+		</link>
+		<link>
+			<name>src/waxbee_isdv4_debug.hex</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/waxbee/Release/waxbee_isdv4_debug.hex</locationURI>
+		</link>
+		<link>
+			<name>src/waxbee_serial.hex</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/waxbee/Release/waxbee_serial.hex</locationURI>
+		</link>
+		<link>
+			<name>src/waxbee_serial_debug.hex</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/waxbee/Release/waxbee_serial_debug.hex</locationURI>
 		</link>
 		<link>
 			<name>src/org/waxbee/teensy/extdata/ConfigTemplate.java</name>
 			<type>1</type>
-			<locationURI>WORKSPACE_LOC/WaxBeeExtDataGen/ConfigTemplate.java</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/WaxBeeExtDataGen/ConfigTemplate.java</locationURI>
 		</link>
 		<link>
 			<name>src/org/waxbee/teensy/extdata/ExtDataConstant.java</name>
 			<type>1</type>
-			<locationURI>WORKSPACE_LOC/WaxBeeExtDataGen/ExtDataConstant.java</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/WaxBeeExtDataGen/ExtDataConstant.java</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

@@ -109,7 +109,7 @@ namespace protocol5_serial
 
 		if(console::console_enabled)
 		{
-			console::printP(STR_SERIAL_TABLET);
+			CONSOLE_PRINTP(STR_SERIAL_TABLET);
 			for(uint8_t i=2;i<datalen;i++)
 				console::print(buffer[i]);
 			console::println();
@@ -117,13 +117,13 @@ namespace protocol5_serial
 			switch(tabletType)
 			{
 				case TABLET_TYPE_UNSUPPORTED:
-					console::printP(STR_UNSUPPORTED);
+					CONSOLE_PRINTP(STR_UNSUPPORTED);
 					break;
 				case TABLET_TYPE_INTUOS:
-					console::printP(STR_INTUOS);
+					CONSOLE_PRINTP(STR_INTUOS);
 					break;
 				case TABLET_TYPE_INTUOS2:
-					console::printP(STR_INTUOS2);
+					CONSOLE_PRINTP(STR_INTUOS2);
 					break;
 			}
 
@@ -528,7 +528,7 @@ namespace protocol5_serial
 
 	void init()
 	{
-		console::printlnP(STR_PROTOCOL5_SERIAL_INIT);
+		CONSOLE_PRINTLNP(STR_PROTOCOL5_SERIAL_INIT);
 
 		resetToolState();
 

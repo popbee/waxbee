@@ -1,6 +1,6 @@
 # Hey Emacs, this is a -*- makefile -*-
 #----------------------------------------------------------------------------
-# WinAVR Makefile Template written by Eric B. Weddington, JÃ¶rg Wunsch, et al.
+# WinAVR Makefile Template written by Eric B. Weddington, Jörg Wunsch, et al.
 #
 # Released to the Public Domain
 #
@@ -39,6 +39,9 @@
 # To rebuild project do "make clean" then "make all".
 #----------------------------------------------------------------------------
 
+# Add -DCUSTOM_SUPPORT to overwrite "featureinclusion.h" #defines.
+# (meant to be done from the command line)
+SUPPORT = 
 
 # MCU name
 MCU = atmega32u4
@@ -70,7 +73,7 @@ FORMAT = ihex
 
 
 # Target file name (without extension).
-TARGET = WaxB_Adb2Usb
+TARGET = Release/waxbee
 
 
 # Object files directory
@@ -124,9 +127,12 @@ EXTRAINCDIRS =
 #     gnu99 = c99 plus GCC extensions
 CSTANDARD = -std=gnu99
 
+DEP = .dep
+
 
 # Place -D or -U options here for C sources
 CDEFS = -DF_CPU=$(F_CPU)UL
+CDEFS += $(SUPPORT)
 
 
 # Place -D or -U options here for ASM sources
@@ -135,6 +141,7 @@ ADEFS = -DF_CPU=$(F_CPU)
 
 # Place -D or -U options here for C++ sources
 CPPDEFS = -DF_CPU=$(F_CPU)UL
+CPPDEFS += $(SUPPORT)
 #CPPDEFS += -D__STDC_LIMIT_MACROS
 #CPPDEFS += -D__STDC_CONSTANT_MACROS
 
@@ -386,7 +393,7 @@ LST = $(SRC:%.c=$(OBJDIR)/%.lst) $(CPPSRC:%.cpp=$(OBJDIR)/%.lst) $(ASRC:%.S=$(OB
 
 
 # Compiler flags to generate dependency files.
-GENDEPFLAGS = -MMD -MP -MF .dep/$(@F).d
+GENDEPFLAGS = -MMD -MP -MF $(DEP)/$(@F).d
 
 
 # Combine all necessary flags and optional flags.
@@ -607,7 +614,7 @@ clean_list :
 	$(REMOVE) $(SRC:.c=.s)
 	$(REMOVE) $(SRC:.c=.d)
 	$(REMOVE) $(SRC:.c=.i)
-	$(REMOVEDIR) .dep
+	$(REMOVEDIR) $(DEP)
 
 
 # Create object files directory
@@ -615,7 +622,7 @@ $(shell mkdir $(OBJDIR) 2>/dev/null)
 
 
 # Include the dependency files.
--include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
+-include $(shell mkdir $(DEP) 2>/dev/null) $(wildcard $(DEP)/*)
 
 
 # Listing of phony targets.

@@ -14,6 +14,10 @@
 //
 //---------------------------------------------------------
 
+#include "featureinclusion.h"
+
+#ifdef ADB_SUPPORT
+
 #include <avr/interrupt.h>
 #include "led.h"
 #include "avr_util.h"
@@ -26,7 +30,7 @@
 #include <util/delay.h>
 
 //uncomment the following to perform some ADB analysis for GD tablets
-//#define GD_TRYOUTS
+#define GD_TRYOUTS
 
 namespace ADB
 {
@@ -55,9 +59,8 @@ namespace ADB
 	}
 
 #ifdef DEBUG_SUPPORT
-	void dump_adb_packet(bool newline)
+	static void dump_adb_packet(bool newline)
 	{
-
 		console::print("[");
 		console::printHex(adbPacket.address, 1);
 		if(adbPacket.command == ADB_COMMAND_TALK)
@@ -78,7 +81,7 @@ namespace ADB
 		}
 
 		console::print(']');
-
+/*
 		for(int i=0; i<adbPacket.datalen; i++)
 		{
 			console::print(" | ");
@@ -105,11 +108,184 @@ namespace ADB
 		}
 
 		console::print(" |");
-
+*/
 		if(newline)
 			console::println();
 	}
 
+	static long x_abs = 0;
+	static long y_abs = 0;
+	static long p_abs = 0;
+
+	static void dump_adb_gd_absolute()
+	{
+		//   0  1  2  3  4  5  6  7
+		//  Ab xx xx yy yy pp pp pp
+		//pp pp pp is a combination of pressure and tilt.
+
+		// |     5     |     6     |     7     |
+		// | pppp pppp | pphh hhhh | hvvv vvvv |
+
+		// first 10 bits, pressure 0->1023
+		// next 7 bits, tilt in x axis (h), left to right
+		// last 7 bits, tilt in y axis (v), top to bottom.
+
+		uint16_t x = (((uint16_t)adbPacket.data[1] & 0xFF) << 8) | ((uint16_t)(adbPacket.data[2] & 0xFF));
+		uint16_t y = (((uint16_t)adbPacket.data[3] & 0xFF) << 8) | ((uint16_t)(adbPacket.data[4] & 0xFF));
+		uint16_t p = (((uint16_t)adbPacket.data[5] & 0xFF) << 2) | ((uint16_t)((adbPacket.data[6] >> 6) & 0xb11));
+
+		x_abs = x;
+		y_abs = y;
+		p_abs = p;
+
+		console::print(" x_abs: ");
+		console::printNumberFixedLength(x_abs, 8);
+		console::print(" y_abs: ");
+		console::printNumberFixedLength(y_abs, 8);
+		console::print(" p_abs: ");
+		console::printNumberFixedLength(p_abs, 8);
+
+		console::println();
+
+		//dump_adb_packet(true);
+	}
+
+	static void printSep()
+	{
+		console::print(" | ");
+	}
+
+	static void print(unsigned char var, int8_t v)
+	{
+		console::print('|');
+		console::print(var);
+		console::print('.');
+		console::printNumberFixedLength(v, 4);
+	}
+
+	static void dump_adb_gd_delta(uint8_t* data, uint8_t len)
+	{
+		// |   s     s |      s    | s    s    |
+		// | 00xx xxxy | yyyy pppp | hhhh vvvv |
+
+		uint8_t d = data[0];
+
+		int8_t x;
+		int8_t y;
+		int8_t p;
+		int8_t h = 0;
+		int8_t v = 0;
+
+		console::printBinary(d, 6, 7);
+
+		printSep();
+
+		console::printBinary(d, 1, 5);
+
+		x = (d >> 1) & 0b1111;
+		if(d & 0b00100000) x=-x;
+
+		console::print(' ');
+
+		console::printBinary(d, 0, 0);
+		if(d & 0xb1)
+			y = -1;
+		else
+			y = 1;
+
+		d = data[1];
+
+		console::printBinary(d, 4, 7);
+		y = y * ((d >> 4) & 0b1111);
+
+		printSep();
+
+		console::printBinary(d, 0, 3);
+		p = d & 0b111;
+		if(d & 0b1000) p = -p;
+
+		printSep();
+
+		if(len == 3)
+		{
+			d = data[2];
+			console::printBinary(d, 4, 7);
+
+			h = (d >> 4) & 0b111;
+			if(d & 0b10000000) h = -h;
+
+			console::print(' ');
+
+			console::printBinary(d, 0, 3);
+
+			v = d & 0b111;
+			if(d & 0b1000) v = -v;
+
+			printSep();
+		}
+		else
+		{
+			console::print("            ");
+		}
+
+		print('x',x);
+		print('y',y);
+		print('p',p);
+		print('h',h);
+		print('v',v);
+
+		x_abs += x;
+		console::print("|x_abs.");
+		console::printNumberFixedLength(x_abs, 8);
+
+		y_abs += y;
+		console::print("|y_abs.");
+		console::printNumberFixedLength(y_abs, 8);
+
+		p_abs += p;
+		console::print("|p_abs.");
+		console::printNumberFixedLength(p_abs, 8);
+
+		console::println();
+	}
+
+	static void dump_adb_gd()
+	{
+		if(adbPacket.datalen == 0)
+			return;
+
+		dump_adb_packet(true);
+
+		switch(adbPacket.datalen)
+		{
+			case 2:
+				dump_adb_gd_delta(adbPacket.data, 2);
+				break;
+			case 3:
+				dump_adb_gd_delta(adbPacket.data, 3);
+				break;
+			case 5:
+				dump_adb_gd_delta(adbPacket.data, 3);
+				dump_adb_gd_delta(adbPacket.data+3, 2);
+				break;
+			case 6:
+				dump_adb_gd_delta(adbPacket.data, 3);
+				dump_adb_gd_delta(adbPacket.data+3, 3);
+				break;
+			case 8:
+				if((adbPacket.data[0] & 0b11000000) == 0b10000000)
+				{
+					dump_adb_gd_absolute();
+				}
+				else
+				{
+					dump_adb_gd_delta(adbPacket.data, 3);
+					dump_adb_gd_delta(adbPacket.data+3, 3);
+					dump_adb_gd_delta(adbPacket.data+6, 2);
+				}
+		}
+	}
+/*
 	static void dump_adb5_event()
 	{
 		uint16_t x = (adbPacket.ud5_r0.x_msb << 8) | adbPacket.ud5_r0.x_lsb;
@@ -131,7 +307,8 @@ namespace ADB
 		console::printNumber(y);
 		console::println();
 	}
-
+*/
+#ifndef GD_TRYOUTS
 	static void dump_adb_event()
 	{
 		if(!console::console_enabled)
@@ -178,6 +355,8 @@ namespace ADB
 	}
 #endif
 
+#endif
+
 	enum adbControllerState
 	{
 		poweron,
@@ -191,6 +370,8 @@ namespace ADB
 		_4L1_response,
 		_4T1_check,	// [4T1:386B50003C000617]
 		_4T1_check_response,
+		_4T2_check,	// [4T2:?]
+		_4T2_check_response,
 #ifdef GD_TRYOUTS
 		_4L2_538C,
 		_4L2_538C_response,
@@ -251,18 +432,18 @@ namespace ADB
 				}
 
 #ifdef DEBUG_SUPPORT
-				console::printP(STR_ENTERING_PROXIMITY_MODE);
+				CONSOLE_PRINTP(STR_ENTERING_PROXIMITY_MODE);
 				if(eraser_mode)
-					console::printlnP(STR_ERASER);
+					CONSOLE_PRINTLNP(STR_ERASER);
 				else
-					console::printlnP(STR_PEN);
+					CONSOLE_PRINTLNP(STR_PEN);
 #endif
 			}
 		}
 		else if(!adbPacket.r0.proximity)
 		{
 #ifdef DEBUG_SUPPORT
-			console::printlnP(STR_EXITING_PROXIMITY);
+			CONSOLE_PRINTLNP(STR_EXITING_PROXIMITY);
 #endif
 			resetToolState();
 		}
@@ -283,7 +464,7 @@ namespace ADB
 
 			if(!adbLastErrorStatus == 0)
 			{
-				console::printP(STR_ERROR_CODE);
+				CONSOLE_PRINTP(STR_ERROR_CODE);
 				console::printNumber(adbLastErrorStatus);
 				console::println();
 			}
@@ -293,10 +474,10 @@ namespace ADB
 		switch(itsCurAdbState)
 		{
 			case poweron:
-				console::printlnP(STR_POWERON);
+				CONSOLE_PRINTLNP(STR_POWERON);
 				resetToolState();
 			case identify:
-				console::printlnP(STR_IDENTIFY);
+				CONSOLE_PRINTLNP(STR_IDENTIFY);
 				// [4T1:384850003C000617]
 				adbPacket.address = 4;
 				adbPacket.command = ADB_COMMAND_TALK;
@@ -311,7 +492,7 @@ namespace ADB
 			case identify_response:
 			{
 #ifdef DEBUG_SUPPORT
-				console::printlnP(STR_IDENTIFY_RESPONSE);
+				CONSOLE_PRINTLNP(STR_IDENTIFY_RESPONSE);
 				dump_adb_packet(true);
 #endif
 				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
@@ -325,16 +506,16 @@ namespace ADB
 				uint16_t max_y = (adbPacket.r1.max_y_msb << 8) | (adbPacket.r1.max_y_lsb);
 
 
-				console::printP(STR_ADB_TABLET_INFO_MAX_X);
+				CONSOLE_PRINTP(STR_ADB_TABLET_INFO_MAX_X);
 				console::printNumber(max_x);
-				console::printP(STR_MAX_Y);
+				CONSOLE_PRINTP(STR_MAX_Y);
 				console::printNumber(max_y);
 				console::println();
 #endif
 			}
 			case _4L3:
 #ifdef DEBUG_SUPPORT
-				console::printlnP(STR_4L3);
+				CONSOLE_PRINTLNP(STR_4L3);
 				// [4L3:6F68]
 #endif
 				adbPacket.address = 4;
@@ -351,7 +532,7 @@ namespace ADB
 
 			case _4L3_response:
 #ifdef DEBUG_SUPPORT
-				console::printlnP(STR_4L3_RESPONSE);
+				CONSOLE_PRINTLNP(STR_4L3_RESPONSE);
 				dump_adb_packet(true);
 #endif
 				if(adbLastErrorStatus != 0)
@@ -362,7 +543,7 @@ namespace ADB
 
 			case _4T3:
 #ifdef DEBUG_SUPPORT
-				console::printlnP(STR_4T3);
+				CONSOLE_PRINTLNP(STR_4T3);
 #endif
 				// [4T3:6968]
 
@@ -378,7 +559,7 @@ namespace ADB
 
 			case _4T3_response:
 #ifdef DEBUG_SUPPORT
-				console::printlnP(STR_4T3_RESPONSE);
+				CONSOLE_PRINTLNP(STR_4T3_RESPONSE);
 				dump_adb_packet(true);
 #endif
 				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
@@ -389,7 +570,7 @@ namespace ADB
 
 			case _4L1:
 #ifdef DEBUG_SUPPORT
-				console::printlnP(STR_4L1);
+				CONSOLE_PRINTLNP(STR_4L1);
 #endif
 				// [4L1:6768]
 
@@ -407,7 +588,7 @@ namespace ADB
 
 			case _4L1_response:
 #ifdef DEBUG_SUPPORT
-				console::printlnP(STR_4L1_RESPONSE);
+				CONSOLE_PRINTLNP(STR_4L1_RESPONSE);
 				dump_adb_packet(true);
 #endif
 				if(adbLastErrorStatus != 0)
@@ -418,7 +599,7 @@ namespace ADB
 
 			case _4T1_check:
 #ifdef DEBUG_SUPPORT
-				console::printlnP(STR_4T1_CHECK);
+				CONSOLE_PRINTLNP(STR_4T1_CHECK);
 #endif
 				// [4T1:386B50003C000617]
 
@@ -434,12 +615,38 @@ namespace ADB
 
 			case _4T1_check_response:
 #ifdef DEBUG_SUPPORT
-				console::printlnP(STR_4T1_CHECK_RESPONSE);
+				CONSOLE_PRINTLNP(STR_4T1_CHECK_RESPONSE);
 				dump_adb_packet(true);
 #endif
 				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
 				{
 					itsCurAdbState = _4T1_check;
+					return false; // re-enter immediately the controller
+				}
+			case _4T2_check:
+#ifdef DEBUG_SUPPORT
+				CONSOLE_PRINTLNP(STR_4T2_CHECK);
+#endif
+				// [4T2:??]
+
+				adbPacket.address = 4;
+				adbPacket.command = ADB_COMMAND_TALK;
+				adbPacket.parameter = 2;
+				adbPacket.datalen = 0;
+
+				ADB::initiateAdbTransfer(&adbPacket, adb_transaction_done);
+
+				itsCurAdbState = _4T2_check_response;
+				break;
+
+			case _4T2_check_response:
+#ifdef DEBUG_SUPPORT
+				CONSOLE_PRINTLNP(STR_4T2_CHECK_RESPONSE);
+				dump_adb_packet(true);
+#endif
+				if(adbLastErrorStatus != 0 || adbPacket.datalen == 0)
+				{
+					itsCurAdbState = _4T2_check;
 					return false; // re-enter immediately the controller
 				}
 #ifdef GD_TRYOUTS
@@ -457,7 +664,9 @@ namespace ADB
 				break;
 
 			case _4L2_538C_response:
+#ifdef DEBUG_SUPPORT
 				dump_adb_packet(true);
+#endif
 				if(adbLastErrorStatus != 0)
 				{
 					itsCurAdbState = _4L2_538C;
@@ -478,7 +687,9 @@ namespace ADB
 				break;
 
 			case _4L2_308C_response:
+#ifdef DEBUG_SUPPORT
 				dump_adb_packet(true);
+#endif
 				if(adbLastErrorStatus != 0)
 				{
 					itsCurAdbState = _4L2_308C;
@@ -515,10 +726,10 @@ namespace ADB
 #ifdef DEBUG_SUPPORT
 				if(adbPacket.datalen > 0)
 				{
-//					debug_pulse();
+					debug_pulse();
 				}
 
-				dump_adb_packet(true);
+				dump_adb_gd();
 #endif
 #endif
 				if(adbPacket.datalen == 0)
@@ -619,8 +830,9 @@ namespace ADB
 					return false; // re-enter immediately the controller
 				}
 
+#ifdef DEBUG_SUPPORT
 				dump_adb_packet(true);
-
+#endif
 				itsCurAdbState = status;
 				return false; // re-enter immediately the controller
 			}
@@ -640,3 +852,5 @@ namespace ADB
 		}
 	}
 }
+
+#endif

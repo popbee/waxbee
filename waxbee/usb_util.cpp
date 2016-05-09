@@ -69,7 +69,7 @@ namespace UsbUtil
 		if(size > USB_MAX_PACKET_SIZE)
 		{
 			size = USB_MAX_PACKET_SIZE;
-			console::printlnP(STR_USBUTIL_PACKET_SIZE_TOO_LARGE);
+			CONSOLE_PRINTLNP(STR_USBUTIL_PACKET_SIZE_TOO_LARGE);
 		}
 
 		memcpy(repeat_buffer, buffer, size);

@@ -36,6 +36,47 @@ public class GenerateSource
 		generateCHeader();
 		generateJavaClass();
 		generateJavaClassConstants();
+		generateBuildVariantsCmd();
+	}
+
+	private void generateBuildVariantsCmd() throws IOException, JSONException
+	{
+		//--------------------------------------
+		// Generate the Build Variant CMD file
+		//--------------------------------------
+		
+		FileWriter writer = new FileWriter("buildvariants.cmd");
+
+		writer.write("@REM CMD File - note: this file has been generated do not modify\n\n");
+		
+		JSONObject items = itsMetadata.itsMetadata.getJSONObject("build_variants");
+		
+		Iterator<String> iter = items.keys();
+		while(iter.hasNext())
+		{
+			String name = iter.next();
+			JSONObject variant = items.getJSONObject(name);
+
+			//make OBJDIR=Build/waxbee_full TARGET=Release/waxbee_full DEP=Build/waxbee_full.dep "SUPPORT=-DCUSTOM_SUPPORT -DDEBUG_SUPPORT -DINITGPIO_SUPPORT -DADB_SUPPORT -DTOUCH_SUPPORT -DBUTTON_SUPPORT -DUSB_PROTOCOL_IV_SUPPORT -DUSB_PROTOCOL_V_SUPPORT -DSERIAL_ISDV4_SUPPORT -DSERIAL_PROTOCOL_IV_SUPPORT -DSERIAL_PROTOCOL_V_SUPPORT -DSERIAL_TOPAZ_SUPPORT"
+
+			writer.write("make OBJDIR=Build/");
+			writer.write(name);
+			writer.write(" TARGET=Release/");
+			writer.write(name);
+			writer.write(" DEP=Build/");
+			writer.write(name);
+			writer.write(".dep \"SUPPORT=-DCUSTOM_SUPPORT");
+			
+			JSONArray array = variant.optJSONArray("supports");
+			for(int i=0;i<array.length();i++) 
+			{
+				writer.write(" -D");
+				writer.write(array.getString(i));
+			}
+			writer.write("\"\n\n");
+		}		
+		
+		writer.close();
 	}
 
 	private void generateCHeader() throws IOException, JSONException 
@@ -176,7 +217,7 @@ public class GenerateSource
 					"\t\tWaxbeeConfig cfg = new WaxbeeConfig();\n\n" +
 					"\t\tArrayList<ConfigItem> items = new ArrayList<ConfigItem>(50);\n" +
 					"\t\tcfg.itsConfigItems = items;\n\n");
-
+		
 		JSONObject items = itsMetadata.itsMetadata.getJSONObject("items");
 		
 		for(String key : itsMetadata.itsIndexedItems)
@@ -254,6 +295,8 @@ public class GenerateSource
 					writeStringWithQuotes(writer, enumitem.getString("name"));
 					writer.write(", ");
 					writeStringWithQuotes(writer, enumitem.optString("comment", null));
+					writer.write(", ");
+					writeStringArray(writer, splitCSV(enumitem.optString("requires", null)));
 					writer.write(")");
 				}				
 				
@@ -274,12 +317,85 @@ public class GenerateSource
 			
 			writer.write("));\n");
 		}		
-	
-		writer.write("\t\treturn cfg;\n\t}\n}\n");
+		
+		writer.write("\n\t\treturn cfg;\n\t}\n");
+		
+		
+		
+		// Build Variants
+
+		writer.write("\n\tpublic static ArrayList<BuildVariant> createBuildVariantList()\n" +
+				"\t{\n" +
+				"\t\tArrayList<BuildVariant> variants = new ArrayList<BuildVariant>(10);\n\n");
+
+		items = itsMetadata.itsMetadata.getJSONObject("build_variants");
+		
+		Iterator<String> iter = items.keys();
+		while(iter.hasNext())
+		{
+			String name = iter.next();
+			JSONObject variant = items.getJSONObject(name);
+			
+			writer.write("\t\tvariants.add(new BuildVariant(");
+			writeStringWithQuotes(writer, name);
+			writer.write(", ");
+			writeStringWithQuotes(writer, variant.optString("description", null));
+			writer.write(",\n\t\t\t\t");
+			writeStringArray(writer, variant.optJSONArray("supports"));
+			writer.write("));\n");
+		}
+		writer.write("\n\t\treturn variants;\n\t}\n");
+		
+		writer.write("}\n");
 		
 		writer.close();
 	}
 	
+	private void writeStringArray(FileWriter writer, JSONArray array) throws IOException
+	{
+		if(array == null) 
+		{
+			writer.write("null");
+			return;
+		}
+
+		writer.write("new String[] {");
+		for(int i=0;i<array.length();i++) 
+		{
+			if(i > 0)
+				writer.write(",");
+			writeStringWithQuotes(writer, array.optString(i));
+		}
+		writer.write("}");
+
+	}
+
+	private void writeStringArray(FileWriter writer, String[] array) throws IOException
+	{
+		if(array == null) 
+		{
+			writer.write("null");
+			return;
+		}
+		
+		writer.write("new String[] {");
+		for(int i=0;i<array.length;i++) 
+		{
+			if(i > 0)
+				writer.write(",");
+			writeStringWithQuotes(writer, array[i]);
+		}
+		writer.write("}");
+	}
+
+	private String[] splitCSV(String csv)
+	{
+		if(csv == null)
+			return null;
+		
+		return csv.split("\\s*,\\s*");
+	}
+
 	/** properly escape special characters, outputs null if string is null */
 	private void writeStringWithQuotes(FileWriter writer, String string) throws IOException 
 	{
@@ -452,4 +568,6 @@ public class GenerateSource
 		writer.write("\n}\n");
 		writer.close();
 	}
+	
+	
 }

@@ -33,13 +33,13 @@ import net.miginfocom.swing.MigLayout;
 public class ProgramDialog extends JDialog
 {
 	private JTextArea itsTextArea;
-//	FirmwareImage itsFirmwareImage;
 	private SwingWorker<String,String> itsWorker = null;
 	private JButton itsCancelButton;
 	private Checkbox itsAutoProgram;
 	
 	private boolean itsKeepReprogramming = false;
 	private WaxbeeConfig itsWaxbeeConfig;
+	private String itsFirmwareName;
 	private JScrollPane itsScrollPane;
 
 	public ProgramDialog(Window owner)
@@ -175,7 +175,7 @@ public class ProgramDialog extends JDialog
 					protected FirmwareImage encodeFirmware() throws Exception
 					{
 						StringBuilder report = new StringBuilder();
-						FirmwareImage firmwareImage = MainApplication.encodeFirmware(itsWaxbeeConfig, report);
+						FirmwareImage firmwareImage = MainApplication.encodeFirmware(itsFirmwareName, itsWaxbeeConfig, report);
 						publish(report.toString());
 						return firmwareImage;
 					}
@@ -222,9 +222,10 @@ public class ProgramDialog extends JDialog
 	}
 
 	/** this is a blocking "modal" call */
-	public void program(WaxbeeConfig waxbeeConfig)
+	public void program(String firmwarename, WaxbeeConfig waxbeeConfig)
 	{
 		itsWaxbeeConfig = waxbeeConfig;
+		itsFirmwareName = firmwarename;
 
 		setVisible(true);
 		

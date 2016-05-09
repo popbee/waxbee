@@ -4,6 +4,8 @@
 package org.waxbee.teensy.extdata;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  * 
@@ -24,7 +26,7 @@ public class WaxbeeConfig
 	int itsUSBTabletYMax;
 
 	ArrayList<ConfigItem> itsConfigItems;
-
+	
 	public int getConfigVersion()
 	{
 		return itsConfigVersion;
@@ -124,5 +126,30 @@ public class WaxbeeConfig
 	public void setConfigItems(ArrayList<ConfigItem> configItems)
 	{
 		itsConfigItems = configItems;
+	}
+
+	public String[] getRequires() throws Exception
+	{
+		// this will go through all items and sub items and accumulate the "requires" into a single set before returning
+		HashSet<String> set = new HashSet<String>(16);
+		
+		for(ConfigItem item : itsConfigItems)
+		{
+			String[] itemRequires = item.getRequires();
+			
+			if(itemRequires == null)
+				continue;
+			
+			for(int i=0;i<itemRequires.length;i++)
+				set.add(itemRequires[i]);
+		}
+
+		if(set.isEmpty())
+			return null;
+		
+		String[] requires = set.toArray(new String[set.size()]);
+		
+		Arrays.sort(requires);
+		return requires;
 	}
 }

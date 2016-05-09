@@ -5,6 +5,8 @@
  *      Author: Bernard
  */
 
+#include "featureinclusion.h"
+
 #include <stdint.h>
 #include <avr/pgmspace.h>
 

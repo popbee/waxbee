@@ -761,7 +761,7 @@ namespace WacomUsb
 
 /*				if(console::console_enabled)
 				{
-					console::printP(STR_USB_PACKET_IN_RANGE_PACKET_ERASER);
+					CONSOLE_PRINTP(STR_USB_PACKET_IN_RANGE_PACKET_ERASER);
 					console::printbit(penEvent.eraser);
 					console::println("]");
 				}
@@ -787,7 +787,7 @@ namespace WacomUsb
 
 /*			if(console::console_enabled)
 			{
-				console::printlnP(STR_USB_PACKET_OUT_OF_RANGE_PACKET_ALL_ZEROS);
+				CONSOLE_PRINTLNP(STR_USB_PACKET_OUT_OF_RANGE_PACKET_ALL_ZEROS);
 			}
 */
 #ifdef DEBUG_SUPPORT

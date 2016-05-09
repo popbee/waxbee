@@ -7,6 +7,10 @@
  *      Author: Bernard
  */
 
+#include "featureinclusion.h"
+
+#ifdef SERIAL_ISDV4_SUPPORT
+
 #include "extdata.h"
 #include "avr_util.h"
 #include "isdv4_serial.h"
@@ -101,7 +105,7 @@ namespace isdv4_serial
 
 					uint16_t version = ( buffer[10] | (buffer[9] << 7) );
 
-					console::printP(STR_PRESSURE_MAX);
+					CONSOLE_PRINTP(STR_PRESSURE_MAX);
 					console::printNumber(maxZ);
 					console::print(", X Max=");
 					console::printNumber(maxX);
@@ -110,15 +114,15 @@ namespace isdv4_serial
 
 					if(hasTilt)
 					{
-						console::printP(STR_HAS_TILT_TILT_X_MAX);
+						CONSOLE_PRINTP(STR_HAS_TILT_TILT_X_MAX);
 						console::printNumber(maxtiltX);
-						console::printP(STR_TILT_Y_MAX);
+						CONSOLE_PRINTP(STR_TILT_Y_MAX);
 						console::printNumber(maxtiltY);
 					}
 					else
-						console::printP(STR_NO_TILT);
+						CONSOLE_PRINTP(STR_NO_TILT);
 
-					console::printP(STR_VERSION);
+					CONSOLE_PRINTP(STR_VERSION);
 					console::printNumber(version);
 					console::println("");
 
@@ -246,7 +250,7 @@ namespace isdv4_serial
 
 	void init()
 	{
-		console::printlnP(STR_ISDV4_SERIAL_INIT);
+		CONSOLE_PRINTLNP(STR_ISDV4_SERIAL_INIT);
 
 		resetToolState();
 
@@ -272,3 +276,5 @@ namespace isdv4_serial
 		}
 	}
 }
+
+#endif
