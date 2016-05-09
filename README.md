@@ -1,8 +1,15 @@
 This hardware project aims at building a USB bridge for ADB or Serial-based Wacom/Calcomp tablets and effectively convert serial/adb tablets to USB.
 
-This is a C++ based project meant to run on the AVR-based [Teensy 2.0][] hardware. Java-based configuration utility running on Win32/64, Mac OS X & Linux.
+This is a C++ based project meant to run on the AVR-based [Teensy 2.0](http://www.pjrc.com/store/teensy.html) hardware. Java-based configuration utility running on Win32/64, Mac OS X & Linux.
 
 NOTE: Soldering is required to perform a tablet conversion. This is done at your own risks.
+
+Using alternate hardware
+------------------------
+
+Out of the box, this project only works on the ATMega32U4 CPU (for other CPUs you need to recompile it and most probably make changes. The Teensy 3.x are completely different. Only the name is the same). 
+
+Starting with version 0.16, it is now easier to flash it on about any ATMega32U4-based board (before it was too large to fit into non Teensy 2.0 boards and you had to wipe the bootloader with external hardware or recompile to drop features and reduce the size).
 
 Projects
 ========
