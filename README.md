@@ -4,6 +4,11 @@ This is a C++ based project meant to run on the AVR-based [Teensy 2.0](http://ww
 
 NOTE: Soldering is required to perform a tablet conversion. This is done at your own risks.
 
+Latest Version Download
+-----------------------
+
+Download Latest in [GitHub Releases](https://github.com/popbee/waxbee/releases/latest)
+
 Using alternate hardware
 ------------------------
 
@@ -53,7 +58,7 @@ Native libraries not well handled and specific to Windows for now. (code is pres
 
 * Simon Stapleton to get ADB started and immense work for the upcoming support for Intuos ADB.
 * Intuos1/2 Tools & serial number support by Chris Dragon of [www.dracoventions.com]
-* Portions of the code (and moslty understanding) from the open source Linux Wacom driver
+* Portions of the code (and mostly understanding) from the open source Linux Wacom driver
 * prjc.com for the basic USB & HID code for the Teensy
 * Thanks to all people helping out!
 
